@@ -8,7 +8,9 @@ import (
 )
 
 // SetupRoutes configures all the routes for the application
-func SetupRoutes(router *gin.Engine, courseController *controllers.CourseController, authController *controllers.AuthController, cfg *config.Config) {
+func SetupRoutes(router *gin.Engine, courseController *controllers.CourseController,
+	authController *controllers.AuthController, enrollmentController *controllers.EnrollmentController,
+	cfg *config.Config) {
 	// Auth routes
 	authRoutes := router.Group("/auth")
 	{
@@ -27,6 +29,9 @@ func SetupRoutes(router *gin.Engine, courseController *controllers.CourseControl
 			courses.GET("", courseController.GetCourses)
 			courses.GET("/:id", courseController.GetCourse)
 
+			// Enrollment routes
+			courses.POST("/:id/enroll", enrollmentController.EnrollInCourse)
+
 			// Routes restricted to instructors and admins
 			instructorRoutes := courses.Group("")
 			instructorRoutes.Use(middleware.InstructorOrAdmin())
@@ -36,7 +41,20 @@ func SetupRoutes(router *gin.Engine, courseController *controllers.CourseControl
 				instructorRoutes.DELETE("/:id", courseController.DeleteCourse)
 				instructorRoutes.POST("/:id/contents", courseController.AddCourseContent)
 				instructorRoutes.DELETE("/:id/contents/:contentId", courseController.DeleteCourseContent)
+
+				// View enrollments for a course (instructors/admins only)
+				instructorRoutes.GET("/:id/enrollments", enrollmentController.GetCourseEnrollments)
 			}
+		}
+
+		// Enrollment management routes
+		enrollments := api.Group("/enrollments")
+		{
+			// User enrollment management
+			enrollments.GET("", enrollmentController.GetUserEnrollments)
+			enrollments.GET("/:id", enrollmentController.GetEnrollmentDetails)
+			enrollments.PUT("/:id/progress", enrollmentController.UpdateEnrollmentProgress)
+			enrollments.PUT("/:id/drop", enrollmentController.DropEnrollment)
 		}
 
 		// Admin-only routes

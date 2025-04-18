@@ -28,7 +28,7 @@ func LoadConfig() (*Config, error) {
 	}
 
 	return &Config{
-		DatabaseURL:        getEnv("DATABASE_URL", "postgres://postgres:password@localhost:5432/learnvibe"),
+		DatabaseURL:        getEnv("DATABASE_URL", "postgres://postgres:vampire8122003@localhost:5432/learnvibe"),
 		Port:               port,
 		JWTSecret:          getEnv("JWT_SECRET", "your-secret-key"),
 		GoogleClientID:     getEnv("GOOGLE_CLIENT_ID", ""),

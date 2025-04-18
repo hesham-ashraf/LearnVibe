@@ -19,8 +19,8 @@ func main() {
 		log.Fatalf("Failed to load configuration: %v", err)
 	}
 
-	// Initialize database
-	db, err := models.InitDB(cfg.DatabaseURL)
+	// Initialize database - using the new signature without database URL
+	db, err := models.InitDB()
 	if err != nil {
 		log.Fatalf("Failed to connect to database: %v", err)
 	}
@@ -31,6 +31,7 @@ func main() {
 	// Initialize controllers
 	courseController := controllers.NewCourseController(db)
 	authController := controllers.NewAuthController(db, cfg)
+	enrollmentController := controllers.NewEnrollmentController(db)
 
 	// Initialize router
 	router := gin.Default()
@@ -39,7 +40,7 @@ func main() {
 	router.Use(middleware.CORSMiddleware())
 
 	// Setup routes
-	routes.SetupRoutes(router, courseController, authController, cfg)
+	routes.SetupRoutes(router, courseController, authController, enrollmentController, cfg)
 
 	// Start the server
 	log.Printf("Server running on port %s", cfg.Port)

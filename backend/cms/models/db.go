@@ -15,24 +15,26 @@ import (
 )
 
 // Load environment variables from .env file
-func LoadEnv() error {
-	if err := godotenv.Load(); err != nil {
-		return fmt.Errorf("Error loading .env file")
-	}
-	return nil
+func LoadEnv() {
+	// We'll just attempt to load .env but not fail if it doesn't exist
+	_ = godotenv.Load()
+	// Log a message but continue execution
+	log.Println("Loaded environment variables (if .env file exists)")
 }
 
 // InitDB initializes the database connection
 func InitDB() (*gorm.DB, error) {
 	// Load environment variables
-	if err := LoadEnv(); err != nil {
-		log.Fatal(err)
-	}
+	LoadEnv()
 
-	// Get database URL from environment variables
+	// Get database URL from environment variables or use default
 	dbURL := os.Getenv("DATABASE_URL")
 	if dbURL == "" {
-		return nil, fmt.Errorf("DATABASE_URL is required")
+		// Use a default connection string if environment variable is not set
+		dbURL = "postgres://postgres:vampire8122003@localhost:5432/learnvibe"
+		log.Println("DATABASE_URL not set, using default:", dbURL)
+	} else {
+		log.Println("Using DATABASE_URL from environment")
 	}
 
 	// Open a connection to the database with retry logic
@@ -48,7 +50,7 @@ func InitDB() (*gorm.DB, error) {
 	// Retry with exponential backoff for transient connection issues
 	err = backoff.Retry(operation, backoff.NewExponentialBackOff())
 	if err != nil {
-		return nil, fmt.Errorf("Error opening database: %v", err)
+		return nil, fmt.Errorf("error opening database: %v", err)
 	}
 
 	// Circuit Breaker setup for database
@@ -67,7 +69,7 @@ func InitDB() (*gorm.DB, error) {
 		return sqlDB, nil
 	})
 	if err != nil {
-		return nil, fmt.Errorf("Database connection failed: %v", err)
+		return nil, fmt.Errorf("database connection failed: %v", err)
 	}
 
 	return db, nil

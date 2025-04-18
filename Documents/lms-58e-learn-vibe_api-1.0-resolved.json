@@ -1,0 +1,360 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "description": "This is the API documentation for LearnVibe Online Learning Platform",
+    "version": "1.0",
+    "title": "LearnVibe API",
+    "contact": {
+      "name": "API Support",
+      "url": "https://www.learnvibe.com/support",
+      "email": "support@learnvibe.com"
+    }
+  },
+  "host": "localhost:8080",
+  "basePath": "/api/v1",
+  "paths": {
+    "/api/v1/auth/login": {
+      "post": {
+        "tags": [
+          "Authentication"
+        ],
+        "summary": "Login User",
+        "description": "Login a user using email and password, returns JWT token if successful",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "credentials",
+            "description": "User credentials (email and password)",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/credentials"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/inline_response_200"
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "$ref": "#/definitions/inline_response_401"
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/courses": {
+      "get": {
+        "tags": [
+          "Courses"
+        ],
+        "summary": "Get all available courses",
+        "description": "Get a list of all courses",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Courses"
+        ],
+        "summary": "Create a new course",
+        "description": "Add a new course to the platform",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "course",
+            "description": "Course details",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/enrollments": {
+      "post": {
+        "tags": [
+          "Enrollments"
+        ],
+        "summary": "Enroll student in a course",
+        "description": "Enroll a student using their user ID and course ID",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "enrollment",
+            "description": "Enrollment details",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/enrollments/{user_id}": {
+      "get": {
+        "tags": [
+          "Enrollments"
+        ],
+        "summary": "Get all courses a user is enrolled in",
+        "description": "Get a list of all courses a user has enrolled in",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "user_id",
+            "in": "path",
+            "description": "User ID",
+            "required": true,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/notifications": {
+      "post": {
+        "tags": [
+          "Notifications"
+        ],
+        "summary": "Send notification to user",
+        "description": "Send a notification to a user (e.g., payment confirmation)",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "notification",
+            "description": "Notification details",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/payments": {
+      "post": {
+        "tags": [
+          "Payments"
+        ],
+        "summary": "Process payment for course enrollment",
+        "description": "Handle payment for a student to enroll in a course",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "payment",
+            "description": "Payment details",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "credentials": {
+      "type": "object",
+      "properties": {
+        "email": {
+          "type": "string",
+          "example": "user@example.com",
+          "description": "The user's email address"
+        },
+        "password": {
+          "type": "string",
+          "example": "yourpassword123",
+          "description": "The user's password"
+        }
+      }
+    },
+    "inline_response_200": {
+      "type": "object",
+      "properties": {
+        "token": {
+          "type": "string",
+          "example": "jwt-token-here",
+          "description": "The JWT token"
+        }
+      }
+    },
+    "inline_response_401": {
+      "type": "object",
+      "properties": {
+        "message": {
+          "type": "string",
+          "example": "Invalid credentials",
+          "description": "Error message"
+        }
+      }
+    }
+  }
+}

@@ -2,21 +2,35 @@ package controllers
 
 import (
 	"net/http"
+	"time"
 
+	"github.com/cenkalti/backoff/v4"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/hesham-ashraf/LearnVibe/backend/cms/models"
+	"github.com/sony/gobreaker"
 	"gorm.io/gorm"
 )
 
 // CourseController handles course-related requests
 type CourseController struct {
 	db *gorm.DB
+	cb *gobreaker.CircuitBreaker // Circuit Breaker for database operations
 }
 
 // NewCourseController creates a new course controller
 func NewCourseController(db *gorm.DB) *CourseController {
-	return &CourseController{db: db}
+	// Configure Circuit Breaker for DB operations
+	settings := gobreaker.Settings{
+		Name:    "CourseService",
+		Timeout: 5 * time.Second,
+	}
+	cb := gobreaker.NewCircuitBreaker(settings)
+
+	return &CourseController{
+		db: db,
+		cb: cb,
+	}
 }
 
 // CreateCourse handles course creation
@@ -38,9 +52,18 @@ func (cc *CourseController) CreateCourse(c *gin.Context) {
 	// Set the creator ID
 	course.CreatorID = userID.(uuid.UUID)
 
-	// Create the course
-	if err := cc.db.Create(&course).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create course"})
+	// Retry logic for DB operation (create course)
+	operation := func() error {
+		if err := cc.db.Create(&course).Error; err != nil {
+			return err
+		}
+		return nil
+	}
+
+	// Retry with exponential backoff
+	err := backoff.Retry(operation, backoff.NewExponentialBackOff())
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create course after retries"})
 		return
 	}
 
@@ -57,6 +80,21 @@ func (cc *CourseController) GetCourses(c *gin.Context) {
 	query := cc.db.Model(&models.Course{}).Preload("Creator")
 	query.Scopes(Paginate(page, pageSize)).Find(&courses)
 
+	// Retry logic for database query (get courses)
+	operation := func() error {
+		if err := query.Find(&courses).Error; err != nil {
+			return err
+		}
+		return nil
+	}
+
+	// Retry with exponential backoff
+	err := backoff.Retry(operation, backoff.NewExponentialBackOff())
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch courses after retries"})
+		return
+	}
+
 	c.JSON(http.StatusOK, courses)
 }
 
@@ -72,6 +110,21 @@ func (cc *CourseController) GetCourse(c *gin.Context) {
 	result := cc.db.Preload("Creator").Preload("Contents").First(&course, id)
 	if result.Error != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Course not found"})
+		return
+	}
+
+	// Retry logic for database query (get course)
+	operation := func() error {
+		if err := cc.db.Preload("Creator").Preload("Contents").First(&course, id).Error; err != nil {
+			return err
+		}
+		return nil
+	}
+
+	// Retry with exponential backoff
+	err = backoff.Retry(operation, backoff.NewExponentialBackOff())
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch course details after retries"})
 		return
 	}
 
@@ -267,8 +320,6 @@ func (cc *CourseController) DeleteCourseContent(c *gin.Context) {
 // Paginate is a helper function for pagination
 func Paginate(page, pageSize string) func(db *gorm.DB) *gorm.DB {
 	return func(db *gorm.DB) *gorm.DB {
-		// Implement pagination logic
-		// This is a simple example - you'd want to handle conversion errors in production
 		var p, ps int
 		if p, err := intOrDefault(page, 1); err == nil {
 			if p < 1 {

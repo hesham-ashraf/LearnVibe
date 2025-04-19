@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/cenkalti/backoff/v4"
@@ -100,7 +101,8 @@ func (cc *CourseController) GetCourses(c *gin.Context) {
 
 // GetCourse gets a single course by ID
 func (cc *CourseController) GetCourse(c *gin.Context) {
-	id, err := uuid.Parse(c.Param("id"))
+	idStr := c.Param("id")
+	id, err := strconv.Atoi(idStr)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid course ID"})
 		return
@@ -141,7 +143,8 @@ func (cc *CourseController) UpdateCourse(c *gin.Context) {
 	}
 
 	// Get course ID from URL
-	id, err := uuid.Parse(c.Param("id"))
+	idStr := c.Param("id")
+	id, err := strconv.Atoi(idStr)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid course ID"})
 		return
@@ -190,7 +193,8 @@ func (cc *CourseController) DeleteCourse(c *gin.Context) {
 	}
 
 	// Get course ID from URL
-	id, err := uuid.Parse(c.Param("id"))
+	idStr := c.Param("id")
+	id, err := strconv.Atoi(idStr)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid course ID"})
 		return
@@ -230,7 +234,8 @@ func (cc *CourseController) AddCourseContent(c *gin.Context) {
 	}
 
 	// Get course ID from URL
-	courseID, err := uuid.Parse(c.Param("id"))
+	courseIDStr := c.Param("id")
+	courseID, err := strconv.Atoi(courseIDStr)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid course ID"})
 		return
@@ -280,7 +285,8 @@ func (cc *CourseController) DeleteCourseContent(c *gin.Context) {
 	}
 
 	// Get course ID and content ID from URL
-	courseID, err := uuid.Parse(c.Param("id"))
+	courseIDStr := c.Param("id")
+	courseID, err := strconv.Atoi(courseIDStr)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid course ID"})
 		return

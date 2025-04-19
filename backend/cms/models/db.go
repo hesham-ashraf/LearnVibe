@@ -92,10 +92,31 @@ func MigrateDB(db *gorm.DB) {
 	}
 
 	// Then migrate models that depend on the first ones
-	log.Println("Migrating CourseContent model...")
-	if err := db.AutoMigrate(&CourseContent{}); err != nil {
-		log.Fatal("Error migrating CourseContent model:", err)
+	// First drop the course_contents table if it exists to avoid constraint issues
+	log.Println("Dropping CourseContent table if exists...")
+	db.Exec("DROP TABLE IF EXISTS course_contents")
+
+	log.Println("Creating CourseContent table manually...")
+	// Create the course_contents table with explicit column types matching the existing schema
+	query := `
+	CREATE TABLE IF NOT EXISTS course_contents (
+		id UUID PRIMARY KEY,
+		course_id INTEGER NOT NULL,
+		title TEXT,
+		description TEXT,
+		type VARCHAR(10),
+		url TEXT,
+		"order" INT,
+		created_at TIMESTAMP WITH TIME ZONE,
+		updated_at TIMESTAMP WITH TIME ZONE,
+		CONSTRAINT fk_course_id FOREIGN KEY (course_id) REFERENCES courses(id) ON DELETE CASCADE
+	)`
+	if err := db.Exec(query).Error; err != nil {
+		log.Fatal("Error creating CourseContent table:", err)
 	}
+
+	// Create index on course_id
+	db.Exec("CREATE INDEX IF NOT EXISTS idx_course_contents_course_id ON course_contents(course_id)")
 
 	log.Println("Migrating Enrollment model...")
 	if err := db.AutoMigrate(&Enrollment{}); err != nil {

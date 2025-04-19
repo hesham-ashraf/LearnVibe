@@ -219,7 +219,7 @@ func (ec *EnrollmentController) UpdateEnrollmentProgress(c *gin.Context) {
 
 	// Parse the progress update from request
 	var progressUpdate struct {
-		Progress float32 json:"progress" binding:"required,min=0,max=100"
+		Progress float32 `json:"progress" binding:"required,min=0,max=100"`
 	}
 
 	if err := c.ShouldBindJSON(&progressUpdate); err != nil {
@@ -260,7 +260,7 @@ func (ec *EnrollmentController) DropEnrollment(c *gin.Context) {
 
 	// Verify ownership - only the enrolled user can drop the course
 	if enrollment.UserID != userID.(uuid.UUID) {
-		c.JSON(http.StatusForbidden, gin.H{"error": "You don't have permission to update this enrollment"})
+		c.JSON(http.StatusForbidden, gin.H{"error": "You don't have permission to drop this enrollment"})
 		return
 	}
 
@@ -268,5 +268,5 @@ func (ec *EnrollmentController) DropEnrollment(c *gin.Context) {
 	enrollment.MarkAsDropped()
 	ec.db.Save(&enrollment)
 
-	c.JSON(http.StatusOK, gin.H{"message": "Successfully dropped the course", "enrollment": enrollment})
+	c.JSON(http.StatusOK, gin.H{"message": "Successfully dropped the course", "enrollment": enrollment})
 }

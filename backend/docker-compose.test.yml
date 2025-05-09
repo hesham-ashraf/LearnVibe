@@ -1,0 +1,133 @@
+version: '3.8'
+
+services:
+  # Test database
+  postgres:
+    image: postgres:15
+    container_name: learnvibe_test_postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: vampire8122003
+      POSTGRES_DB: learnvibe_test
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_test_data:/var/lib/postgresql/data
+    networks:
+      - learnvibe_test_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Test RabbitMQ service
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: learnvibe_test_rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      - RABBITMQ_DEFAULT_USER=guest
+      - RABBITMQ_DEFAULT_PASS=guest
+    volumes:
+      - rabbitmq_test_data:/var/lib/rabbitmq
+    networks:
+      - learnvibe_test_network
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 10s
+      retries: 3
+
+  # Pact Broker for contract testing
+  pact_broker:
+    image: pactfoundation/pact-broker
+    container_name: learnvibe_test_pact_broker
+    ports:
+      - "9292:9292"
+    depends_on:
+      - pact_db
+    environment:
+      PACT_BROKER_DATABASE_USERNAME: postgres
+      PACT_BROKER_DATABASE_PASSWORD: postgres
+      PACT_BROKER_DATABASE_HOST: pact_db
+      PACT_BROKER_DATABASE_NAME: pact_broker
+      PACT_BROKER_LOG_LEVEL: INFO
+    networks:
+      - learnvibe_test_network
+
+  # Database for Pact Broker
+  pact_db:
+    image: postgres:15
+    container_name: learnvibe_test_pact_db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: pact_broker
+    volumes:
+      - pact_db_data:/var/lib/postgresql/data
+    networks:
+      - learnvibe_test_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # k6 load testing container
+  k6:
+    image: loadimpact/k6:latest
+    container_name: learnvibe_test_k6
+    volumes:
+      - ./tests/k6:/scripts
+    networks:
+      - learnvibe_test_network
+    environment:
+      - K6_OUT=influxdb=http://influxdb:8086/k6
+    command: run /scripts/load-test.js
+    depends_on:
+      - influxdb
+      - grafana
+
+  # InfluxDB for storing k6 metrics
+  influxdb:
+    image: influxdb:1.8
+    container_name: learnvibe_test_influxdb
+    ports:
+      - "8086:8086"
+    environment:
+      - INFLUXDB_DB=k6
+    volumes:
+      - influxdb_data:/var/lib/influxdb
+    networks:
+      - learnvibe_test_network
+
+  # Grafana for visualizing test results
+  grafana:
+    image: grafana/grafana:latest
+    container_name: learnvibe_test_grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+      - GF_AUTH_DISABLE_LOGIN_FORM=true
+    volumes:
+      - ./tests/grafana/dashboards:/var/lib/grafana/dashboards
+      - ./tests/grafana/provisioning:/etc/grafana/provisioning
+    networks:
+      - learnvibe_test_network
+    depends_on:
+      - influxdb
+
+volumes:
+  postgres_test_data:
+  rabbitmq_test_data:
+  pact_db_data:
+  influxdb_data:
+
+networks:
+  learnvibe_test_network:
+    driver: bridge 

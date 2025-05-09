@@ -14,6 +14,13 @@ type Config struct {
 	GoogleClientID     string
 	GoogleClientSecret string
 	GoogleRedirectURL  string
+
+	// RabbitMQ settings
+	RabbitMQURL      string
+	RabbitMQExchange string
+
+	// OpenSearch logging settings
+	OpenSearchURL string
 }
 
 // LoadConfig loads configuration from environment variables
@@ -34,6 +41,9 @@ func LoadConfig() (*Config, error) {
 		GoogleClientID:     getEnv("GOOGLE_CLIENT_ID", ""),
 		GoogleClientSecret: getEnv("GOOGLE_CLIENT_SECRET", ""),
 		GoogleRedirectURL:  getEnv("GOOGLE_REDIRECT_URL", "http://localhost:8080/auth/google/callback"),
+		RabbitMQURL:        getEnv("RABBITMQ_URL", "amqp://guest:guest@localhost:5672/"),
+		RabbitMQExchange:   getEnv("RABBITMQ_EXCHANGE", "learnvibe"),
+		OpenSearchURL:      getEnv("OPENSEARCH_URL", "http://localhost:9200"),
 	}, nil
 }
 

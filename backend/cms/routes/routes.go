@@ -10,12 +10,20 @@ import (
 // SetupRoutes configures all the routes for the application
 func SetupRoutes(router *gin.Engine, courseController *controllers.CourseController,
 	authController *controllers.AuthController, enrollmentController *controllers.EnrollmentController,
-	cfg *config.Config) {
+	healthController *controllers.HealthController, cfg *config.Config) {
 	// Auth routes
 	authRoutes := router.Group("/auth")
 	{
+		// OAuth routes
 		authRoutes.GET("/google", authController.GoogleLogin)
 		authRoutes.GET("/google/callback", authController.GoogleCallback)
+
+		// Standard authentication routes
+		authRoutes.POST("/login", authController.Login)
+		authRoutes.POST("/register", authController.Register)
+
+		// Current user route (protected)
+		authRoutes.GET("/me", middleware.AuthMiddleware(cfg.JWTSecret), authController.GetCurrentUser)
 	}
 
 	// API routes (protected)
@@ -66,9 +74,5 @@ func SetupRoutes(router *gin.Engine, courseController *controllers.CourseControl
 	}
 
 	// Health check
-	router.GET("/health", func(c *gin.Context) {
-		c.JSON(200, gin.H{
-			"status": "ok",
-		})
-	})
+	router.GET("/health", healthController.CheckHealth)
 }

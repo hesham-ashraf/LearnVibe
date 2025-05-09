@@ -1,186 +1,115 @@
-# LearnVibe - Learning Management System
+# LearnVibe - Modern Learning Platform
 
-LearnVibe is a microservices-based learning management system designed for scalability and modern educational needs.
+LearnVibe is a comprehensive learning platform built with a focus on clean architecture, security, and scalability. The platform enables course creation, student enrollment, and content delivery through a microservices-based backend.
 
-## System Architecture
+## Project Structure
 
-The system consists of three main services:
+```
+learnvibe/
+├── backend/             # Backend services (Go)
+│   ├── gateway/         # API Gateway service
+│   ├── cms/             # Course Management service
+│   ├── content-delivery/ # Content Delivery service
+│   └── tests/           # Cross-service tests
+└── Documents/           # Project documentation
+```
 
-1. **CMS Service** - Manages courses, users, and enrollments
-2. **Content Delivery Service** - Handles content storage and delivery
-3. **API Gateway** - Routes requests to appropriate services and handles authentication
+## Key Features
 
-## Prerequisites
+- **Learning Management System**: Course creation, student enrollment, progress tracking
+- **Content Delivery**: Secure delivery of educational materials (videos, documents, etc.)
+- **User Authentication**: JWT and OAuth2 (Google) authentication
+- **API Security**: Rate limiting, HTTPS, JWT tokens
+- **Scalable Architecture**: Microservices with containerization
 
-- Go 1.23 or later
-- PostgreSQL 12 or later
-- Redis for caching (Content Delivery Service)
-- MinIO for object storage (Content Delivery Service)
+## Technical Implementation
 
-## Quick Start
+The backend is built using modern web development practices:
 
-### 1. Clone the Repository
+- **Clean Architecture**: Separation of concerns with distinct layers
+- **Containerization**: Docker + Docker Compose for consistent environments
+- **API Gateway**: Service orchestration and unified entry point
+- **Caching**: Redis for high-performance data access
+- **Message Brokers**: RabbitMQ for asynchronous communication
+- **Centralized Logging**: OpenSearch for log aggregation and analysis
+- **Storage**: MinIO for S3-compatible object storage
+- **Testing**: Unit, integration, contract, and load testing
 
+## Getting Started
+
+### Prerequisites
+
+- Docker and Docker Compose
+- Go 1.20+ (for local development)
+- PostgreSQL (for local development)
+- Google OAuth credentials (for authentication)
+
+### Quick Start
+
+1. Clone the repository:
 ```bash
-git clone https://github.com/hesham-ashraf/LearnVibe.git
+git clone https://github.com/yourusername/LearnVibe.git
 cd LearnVibe
 ```
 
-### 2. Database Setup
-
-Create two PostgreSQL databases:
-- `learnvibe` - For the CMS service
-- `learnvibe_content` - For the Content Delivery service
-
+2. Configure environment variables:
 ```bash
-# Example using psql
-createdb learnvibe
-createdb learnvibe_content
+cd backend
+cp .env.example .env
+# Edit .env file with your settings
 ```
 
-### 3. Environment Configuration
-
-Each service requires its own environment configuration. Sample `.env` files are provided in each service directory.
-
-#### CMS Service
-
-Create/update `backend/cms/.env`:
-
-```
-DB_HOST=localhost
-DB_PORT=5432
-DB_USER=postgres
-DB_PASSWORD=your_password
-DB_NAME=learnvibe
-JWT_SECRET=your_jwt_secret
-PORT=8080
-GOOGLE_CLIENT_ID=your_google_client_id
-GOOGLE_CLIENT_SECRET=your_google_client_secret
-GOOGLE_CALLBACK_URL=http://localhost:8080/auth/google/callback
-```
-
-#### Content Delivery Service
-
-Create/update `backend/content-delivery/.env`:
-
-```
-DB_HOST=localhost
-DB_PORT=5432
-DB_USER=postgres
-DB_PASSWORD=your_password
-DB_NAME=learnvibe_content
-JWT_SECRET=your_jwt_secret
-PORT=8090
-STORAGE_PATH=./storage
-REDIS_HOST=localhost
-REDIS_PORT=6379
-REDIS_PASSWORD=
-MINIO_ENDPOINT=localhost:9000
-MINIO_ACCESS_KEY=minioadmin
-MINIO_SECRET_KEY=minioadmin
-MINIO_BUCKET=learnvibe-content
-MINIO_USE_SSL=false
-```
-
-#### API Gateway Service
-
-Create/update `backend/gateway/.env`:
-
-```
-PORT=8000
-JWT_SECRET=your_jwt_secret
-RATE_LIMIT=100
-CIRCUIT_TIMEOUT=30s
-CIRCUIT_MAX_REQUESTS=10
-CIRCUIT_INTERVAL=60s
-CMS_SERVICE_URL=http://localhost:8080
-CONTENT_SERVICE_URL=http://localhost:8090
-REQUEST_TIMEOUT=30s
-```
-
-### 4. Starting the Services
-
-You need to start all three services for the complete system to function.
-
-#### Terminal 1: Start CMS Service
-
+3. Start the services:
 ```bash
-cd backend/cms
-go run main.go
+docker-compose up -d
 ```
 
-#### Terminal 2: Start Content Delivery Service
+4. Access the services:
+- API Gateway: http://localhost:8000
+- CMS Service: http://localhost:8080
+- Content Delivery Service: http://localhost:8082
+- OpenSearch Dashboards: http://localhost:5601
+- RabbitMQ Management: http://localhost:15672
+- MinIO Console: http://localhost:9001
 
+## Development
+
+See the backend [README](backend/README.md) for detailed development instructions.
+
+## Testing
+
+The project includes comprehensive testing:
+
+- Unit tests
+- Integration tests
+- Contract tests for service compatibility
+- Load & stress testing with k6
+
+To run tests:
 ```bash
-cd backend/content-delivery
-go run main.go
+cd backend
+./run-tests.bat  # Windows
+./scripts/run-tests.sh  # Linux/macOS
 ```
 
-#### Terminal 3: Start API Gateway
+## Security Features
 
-```bash
-cd backend/gateway
-go run main.go
-```
+- OAuth2 authentication with Google
+- JWT token-based authentication
+- Role-based access control
+- Rate limiting
+- Input validation
+- HTTPS support
 
-## API Testing with Postman
+## Requirements Implemented
 
-1. Import the Postman collection: `LearnVibe API.postman_collection.json`
-2. Set up environment variables in Postman:
-   - `gateway_url`: `http://localhost:8000`
-   - `cms_url`: `http://localhost:8080`
-   - `content_url`: `http://localhost:8090`
-   - `jwt_token`: (This will be populated after authentication)
-
-3. Run the Authentication API first to get a JWT token:
-   - Send a request to `GET {{gateway_url}}/auth/google`
-   - Complete the OAuth flow in the browser
-   - Copy the JWT token and set it in the Postman environment
-
-4. Test other APIs as needed:
-   - Courses API
-   - Content API
-   - Enrollments API
-
-## Troubleshooting
-
-### Database Connection Issues
-
-If you encounter database connection issues:
-- Verify PostgreSQL is running
-- Check database credentials in the `.env` files
-- Ensure databases are created
-
-### Redis Connection Issues
-
-For Redis-related errors:
-- Ensure Redis server is running
-- If using a password-protected Redis instance, update the `REDIS_PASSWORD` environment variable
-
-### MinIO/Storage Issues
-
-For content storage issues:
-- Verify MinIO is running
-- Check the MinIO credentials in the `.env` file
-- Ensure the bucket exists
-
-## Development Guidelines
-
-- Follow Go best practices
-- Use proper error handling
-- Write unit tests for new functionality
-- Document APIs and code changes
-
-## Built With
-
-- [Go](https://golang.org/) - The programming language
-- [Gin](https://github.com/gin-gonic/gin) - Web framework
-- [GORM](https://gorm.io/) - ORM library
-- [JWT](https://github.com/golang-jwt/jwt) - Authentication mechanism
-- [PostgreSQL](https://www.postgresql.org/) - Database
-- [Redis](https://redis.io/) - Caching
-- [MinIO](https://min.io/) - Object storage
-
-## License
-
-This project is licensed under the MIT License.
+- ✅ Clean Architecture
+- ✅ Docker and Compose containerization
+- ✅ CRUD functionality with API Gateway
+- ✅ Redis caching
+- ✅ RabbitMQ message broker
+- ✅ OpenSearch centralized logging
+- ✅ OAuth2 authentication
+- ✅ Secure API implementation
+- ✅ Comprehensive testing suite
+- ✅ 80%+ test coverage

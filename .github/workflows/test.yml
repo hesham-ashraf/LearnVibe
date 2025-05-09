@@ -1,0 +1,191 @@
+name: LearnVibe Testing Suite
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  unit-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.23'
+          cache: true
+
+      - name: Install dependencies
+        run: |
+          cd backend
+          go mod download
+          go install github.com/stretchr/testify/assert@latest
+          go install github.com/stretchr/testify/mock@latest
+
+      - name: Run unit tests
+        run: |
+          cd backend
+          mkdir -p coverage
+          # Run tests for CMS
+          cd cms
+          go test -v -coverprofile=../coverage/cms.out ./... -run "Test[^Integration]"
+          # Run tests for Gateway
+          cd ../gateway
+          go test -v -coverprofile=../coverage/gateway.out ./... -run "Test[^Integration]"
+          # Run tests for Content Delivery
+          cd ../content-delivery
+          go test -v -coverprofile=../coverage/content-delivery.out ./... -run "Test[^Integration]"
+
+      - name: Check coverage
+        run: |
+          cd backend
+          go tool cover -func=coverage/cms.out | grep total | awk '{print $3}'
+          go tool cover -func=coverage/gateway.out | grep total | awk '{print $3}'
+          go tool cover -func=coverage/content-delivery.out | grep total | awk '{print $3}'
+
+      - name: Upload coverage reports
+        uses: actions/upload-artifact@v3
+        with:
+          name: coverage-reports
+          path: backend/coverage/*.out
+
+  integration-tests:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: learnvibe_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      rabbitmq:
+        image: rabbitmq:3-management
+        env:
+          RABBITMQ_DEFAULT_USER: guest
+          RABBITMQ_DEFAULT_PASS: guest
+        ports:
+          - 5672:5672
+          - 15672:15672
+        options: >-
+          --health-cmd "rabbitmq-diagnostics -q ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.23'
+          cache: true
+
+      - name: Install dependencies
+        run: |
+          cd backend
+          go mod download
+
+      - name: Set up environment variables
+        run: |
+          echo "TEST_DATABASE_URL=postgres://postgres:postgres@localhost:5432/learnvibe_test" >> $GITHUB_ENV
+          echo "JWT_SECRET=test-secret" >> $GITHUB_ENV
+
+      - name: Run integration tests
+        run: |
+          # CMS integration tests
+          cd backend/cms
+          if [ -d "tests/integration" ]; then
+            go test -v ./tests/integration
+          fi
+          
+          # Gateway integration tests
+          cd ../gateway
+          if [ -d "tests/integration" ]; then
+            go test -v ./tests/integration
+          fi
+          
+          # Content delivery integration tests
+          cd ../content-delivery
+          if [ -d "tests/integration" ]; then
+            go test -v ./tests/integration
+          fi
+
+  contract-tests:
+    runs-on: ubuntu-latest
+    services:
+      pact-broker:
+        image: pactfoundation/pact-broker:latest
+        ports:
+          - 9292:9292
+        env:
+          PACT_BROKER_DATABASE_ADAPTER: sqlite
+          PACT_BROKER_DATABASE_NAME: /tmp/pact_broker.sqlite
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.23'
+          cache: true
+
+      - name: Install dependencies
+        run: |
+          cd backend
+          go mod download
+          # Install pact
+          curl -LO https://github.com/pact-foundation/pact-ruby-standalone/releases/download/v1.88.40/pact-1.88.40-linux-x86_64.tar.gz
+          tar xzf pact-1.88.40-linux-x86_64.tar.gz
+          export PATH=$PATH:$PWD/pact/bin
+
+      - name: Run contract tests
+        run: |
+          export PACT_DIR=/tmp/pacts
+          mkdir -p $PACT_DIR
+          
+          # Run CMS consumer tests
+          cd backend/cms
+          if [ -d "tests/contract" ]; then
+            go test -v ./tests/contract
+          fi
+          
+          # Run Content delivery provider verification
+          cd ../content-delivery
+          if [ -d "tests/contract" ]; then
+            PACT_PROVIDER_VERIFICATION=true go test -v ./tests/contract
+          fi
+
+  load-tests:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request' && github.base_ref == 'main'
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install k6
+        run: |
+          sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys C5AD17C747E3415A3642D57D77C6C491D6AC1D69
+          echo "deb https://dl.k6.io/deb stable main" | sudo tee /etc/apt/sources.list.d/k6.list
+          sudo apt-get update
+          sudo apt-get install k6
+
+      - name: Run load tests with minimal settings
+        run: |
+          cd backend
+          if [ -f "tests/k6/load-test.js" ]; then
+            k6 run --vus 5 --duration 10s tests/k6/load-test.js
+          else
+            echo "No k6 load tests found"
+          fi 

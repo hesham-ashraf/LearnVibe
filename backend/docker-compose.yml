@@ -1,0 +1,268 @@
+version: '3.8'
+
+services:
+  # API Gateway
+  gateway:
+    build:
+      context: .
+      dockerfile: Dockerfile.gateway
+    ports:
+      - "8000:8000"
+    environment:
+      - PORT=8000
+      - JWT_SECRET=your_jwt_secret_key_change_this_in_production
+      - CMS_SERVICE_URL=http://cms:8080
+      - CONTENT_SERVICE_URL=http://content:8082
+      - RATE_LIMIT_REQUESTS=100
+      - RATE_LIMIT_DURATION=60
+      - OPENSEARCH_URL=http://opensearch:9200
+    depends_on:
+      - cms
+      - content
+      - opensearch
+    restart: unless-stopped
+    networks:
+      - learnvibe-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # CMS Service
+  cms:
+    build:
+      context: .
+      dockerfile: Dockerfile.cms
+    ports:
+      - "8080:8080"
+    environment:
+      - PORT=8080
+      - JWT_SECRET=your_jwt_secret_key_change_this_in_production
+      - DATABASE_URL=postgres://postgres:postgres@postgres-cms:5432/learnvibe
+      - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672/
+      - OPENSEARCH_URL=http://opensearch:9200
+      - REDIS_URL=redis:6379
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+      - GOOGLE_REDIRECT_URL=http://localhost:8080/auth/google/callback
+    depends_on:
+      - postgres-cms
+      - rabbitmq
+      - opensearch
+      - redis
+    restart: unless-stopped
+    networks:
+      - learnvibe-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Content Delivery Service
+  content:
+    build:
+      context: .
+      dockerfile: Dockerfile.content
+    ports:
+      - "8082:8082"
+    environment:
+      - PORT=8082
+      - JWT_SECRET=your_jwt_secret_key_change_this_in_production
+      - DATABASE_URL=postgres://postgres:postgres@postgres-content:5432/learnvibe_content
+      - REDIS_URL=redis:6379
+      - REDIS_PASSWORD=
+      - MINIO_ENDPOINT=minio:9000
+      - MINIO_ACCESS_KEY=minioadmin
+      - MINIO_SECRET_KEY=minioadmin
+      - MINIO_BUCKET=learnvibe-content
+      - MINIO_USE_SSL=false
+      - CMS_SERVICE_URL=http://cms:8080
+      - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672/
+      - OPENSEARCH_URL=http://opensearch:9200
+    depends_on:
+      - postgres-content
+      - redis
+      - minio
+      - rabbitmq
+      - opensearch
+    restart: unless-stopped
+    networks:
+      - learnvibe-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8082/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # CMS Database
+  postgres-cms:
+    image: postgres:14
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=learnvibe
+    volumes:
+      - postgres-cms-data:/var/lib/postgresql/data
+    networks:
+      - learnvibe-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Content Database
+  postgres-content:
+    image: postgres:14
+    ports:
+      - "5433:5432"
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=learnvibe_content
+    volumes:
+      - postgres-content-data:/var/lib/postgresql/data
+    networks:
+      - learnvibe-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis Cache
+  redis:
+    image: redis:7
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - learnvibe-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # MinIO Object Storage
+  minio:
+    image: minio/minio
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      - MINIO_ROOT_USER=minioadmin
+      - MINIO_ROOT_PASSWORD=minioadmin
+    volumes:
+      - minio-data:/data
+    command: server /data --console-address ":9001"
+    networks:
+      - learnvibe-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+
+  # RabbitMQ Message Broker
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      - RABBITMQ_DEFAULT_USER=guest
+      - RABBITMQ_DEFAULT_PASS=guest
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+    networks:
+      - learnvibe-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "check_port_connectivity"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # OpenSearch (for centralized logging)
+  opensearch:
+    image: opensearchproject/opensearch:2.4.0
+    ports:
+      - "9200:9200"
+      - "9600:9600"
+    environment:
+      - discovery.type=single-node
+      - bootstrap.memory_lock=true
+      - "OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m"
+      - "DISABLE_SECURITY_PLUGIN=true"
+      - "DISABLE_INSTALL_DEMO_CONFIG=true"
+    volumes:
+      - opensearch-data:/usr/share/opensearch/data
+    networks:
+      - learnvibe-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # OpenSearch Dashboards
+  opensearch-dashboards:
+    image: opensearchproject/opensearch-dashboards:2.4.0
+    ports:
+      - "5601:5601"
+    environment:
+      - OPENSEARCH_HOSTS=["http://opensearch:9200"]
+      - "DISABLE_SECURITY_DASHBOARDS_PLUGIN=true"
+    depends_on:
+      - opensearch
+    networks:
+      - learnvibe-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:5601/api/status || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+networks:
+  learnvibe-network:
+    driver: bridge
+
+volumes:
+  postgres-cms-data:
+  postgres-content-data:
+  redis-data:
+  minio-data:
+  rabbitmq-data:
+  opensearch-data: 

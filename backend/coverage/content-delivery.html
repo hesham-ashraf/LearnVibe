@@ -1,0 +1,1838 @@
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title>config: Go Coverage Report</title>
+		<style>
+			body {
+				background: black;
+				color: rgb(80, 80, 80);
+			}
+			body, pre, #legend span {
+				font-family: Menlo, monospace;
+				font-weight: bold;
+			}
+			#topbar {
+				background: black;
+				position: fixed;
+				top: 0; left: 0; right: 0;
+				height: 42px;
+				border-bottom: 1px solid rgb(80, 80, 80);
+			}
+			#content {
+				margin-top: 50px;
+			}
+			#nav, #legend {
+				float: left;
+				margin-left: 10px;
+			}
+			#legend {
+				margin-top: 12px;
+			}
+			#nav {
+				margin-top: 10px;
+			}
+			#legend span {
+				margin: 0 5px;
+			}
+			.cov0 { color: rgb(192, 0, 0) }
+.cov1 { color: rgb(128, 128, 128) }
+.cov2 { color: rgb(116, 140, 131) }
+.cov3 { color: rgb(104, 152, 134) }
+.cov4 { color: rgb(92, 164, 137) }
+.cov5 { color: rgb(80, 176, 140) }
+.cov6 { color: rgb(68, 188, 143) }
+.cov7 { color: rgb(56, 200, 146) }
+.cov8 { color: rgb(44, 212, 149) }
+.cov9 { color: rgb(32, 224, 152) }
+.cov10 { color: rgb(20, 236, 155) }
+
+		</style>
+	</head>
+	<body>
+		<div id="topbar">
+			<div id="nav">
+				<select id="files">
+				
+				<option value="file0">github.com/hesham-ashraf/LearnVibe/backend/content-delivery/config/config.go (0.0%)</option>
+				
+				<option value="file1">github.com/hesham-ashraf/LearnVibe/backend/content-delivery/controllers/content_controller.go (0.0%)</option>
+				
+				<option value="file2">github.com/hesham-ashraf/LearnVibe/backend/content-delivery/controllers/health_controller.go (0.0%)</option>
+				
+				<option value="file3">github.com/hesham-ashraf/LearnVibe/backend/content-delivery/main.go (0.0%)</option>
+				
+				<option value="file4">github.com/hesham-ashraf/LearnVibe/backend/content-delivery/middleware/auth_middleware.go (0.0%)</option>
+				
+				<option value="file5">github.com/hesham-ashraf/LearnVibe/backend/content-delivery/middleware/cors_middleware.go (0.0%)</option>
+				
+				<option value="file6">github.com/hesham-ashraf/LearnVibe/backend/content-delivery/middleware/logging.go (0.0%)</option>
+				
+				<option value="file7">github.com/hesham-ashraf/LearnVibe/backend/content-delivery/models/content.go (0.0%)</option>
+				
+				<option value="file8">github.com/hesham-ashraf/LearnVibe/backend/content-delivery/models/db.go (0.0%)</option>
+				
+				<option value="file9">github.com/hesham-ashraf/LearnVibe/backend/content-delivery/routes/routes.go (0.0%)</option>
+				
+				<option value="file10">github.com/hesham-ashraf/LearnVibe/backend/content-delivery/services/logging_service.go (0.0%)</option>
+				
+				<option value="file11">github.com/hesham-ashraf/LearnVibe/backend/content-delivery/services/message_broker.go (0.0%)</option>
+				
+				<option value="file12">github.com/hesham-ashraf/LearnVibe/backend/content-delivery/services/storage.go (0.0%)</option>
+				
+				</select>
+			</div>
+			<div id="legend">
+				<span>not tracked</span>
+			
+				<span class="cov0">not covered</span>
+				<span class="cov8">covered</span>
+			
+			</div>
+		</div>
+		<div id="content">
+		
+		<pre class="file" id="file0" style="display: none">package config
+
+import (
+        "log"
+        "os"
+
+        "github.com/joho/godotenv"
+)
+
+// Config holds the application configuration
+type Config struct {
+        // Server settings
+        Port string
+
+        // JWT settings
+        JWTSecret string
+
+        // Database settings
+        DatabaseURL string
+
+        // Redis (caching) settings
+        RedisURL  string
+        RedisPass string
+
+        // MinIO (object storage) settings
+        MinioEndpoint  string
+        MinioAccessKey string
+        MinioSecretKey string
+        MinioBucket    string
+        MinioUseSSL    bool
+
+        // CMS Service URL for inter-service communication
+        CMSServiceURL string
+
+        // RabbitMQ settings
+        RabbitMQURL      string
+        RabbitMQExchange string
+
+        // OpenSearch logging settings
+        OpenSearchURL string
+}
+
+// LoadConfig loads configuration from environment variables
+func LoadConfig() (*Config, error) <span class="cov0" title="0">{
+        // Load .env file if present
+        _ = godotenv.Load()
+
+        // Load configuration
+        config := &amp;Config{
+                Port:             getEnv("PORT", "8082"),
+                JWTSecret:        getEnv("JWT_SECRET", "your-secret-key"),
+                DatabaseURL:      getEnv("DATABASE_URL", "postgres://postgres:vampire8122003@localhost:5432/learnvibe_content"),
+                RedisURL:         getEnv("REDIS_URL", "localhost:6379"),
+                RedisPass:        getEnv("REDIS_PASSWORD", ""),
+                MinioEndpoint:    getEnv("MINIO_ENDPOINT", "localhost:9000"),
+                MinioAccessKey:   getEnv("MINIO_ACCESS_KEY", "minioadmin"),
+                MinioSecretKey:   getEnv("MINIO_SECRET_KEY", "minioadmin"),
+                MinioBucket:      getEnv("MINIO_BUCKET", "learnvibe-content"),
+                MinioUseSSL:      getEnvBool("MINIO_USE_SSL", false),
+                CMSServiceURL:    getEnv("CMS_SERVICE_URL", "http://localhost:8080"),
+                RabbitMQURL:      getEnv("RABBITMQ_URL", "amqp://guest:guest@localhost:5672/"),
+                RabbitMQExchange: getEnv("RABBITMQ_EXCHANGE", "learnvibe"),
+                OpenSearchURL:    getEnv("OPENSEARCH_URL", "http://localhost:9200"),
+        }
+
+        // Validate required settings
+        if config.JWTSecret == "" </span><span class="cov0" title="0">{
+                log.Println("WARNING: JWT_SECRET is not set! Using default value for development only!")
+        }</span>
+
+        <span class="cov0" title="0">return config, nil</span>
+}
+
+// getEnv gets an environment variable or returns a default value
+func getEnv(key, defaultValue string) string <span class="cov0" title="0">{
+        value := os.Getenv(key)
+        if value == "" </span><span class="cov0" title="0">{
+                return defaultValue
+        }</span>
+        <span class="cov0" title="0">return value</span>
+}
+
+// getEnvBool gets an environment variable as boolean or returns a default value
+func getEnvBool(key string, defaultValue bool) bool <span class="cov0" title="0">{
+        value := os.Getenv(key)
+        if value == "" </span><span class="cov0" title="0">{
+                return defaultValue
+        }</span>
+        <span class="cov0" title="0">return value == "true" || value == "1" || value == "yes"</span>
+}
+</pre>
+		
+		<pre class="file" id="file1" style="display: none">package controllers
+
+import (
+        "fmt"
+        "net/http"
+        "path/filepath"
+        "strconv"
+        "time"
+
+        "github.com/gin-gonic/gin"
+        "github.com/google/uuid"
+        "github.com/hesham-ashraf/LearnVibe/backend/content-delivery/models"
+        "github.com/hesham-ashraf/LearnVibe/backend/content-delivery/services"
+)
+
+// ContentController handles content-related requests
+type ContentController struct {
+        db      *models.Database
+        storage *services.StorageService
+}
+
+// NewContentController creates a new content controller
+func NewContentController(db *models.Database, storage *services.StorageService) *ContentController <span class="cov0" title="0">{
+        return &amp;ContentController{
+                db:      db,
+                storage: storage,
+        }
+}</span>
+
+// UploadContent handles file uploads
+func (cc *ContentController) UploadContent(c *gin.Context) <span class="cov0" title="0">{
+        // Get user ID from context (set by auth middleware)
+        userID, exists := c.Get("userID")
+        if !exists </span><span class="cov0" title="0">{
+                c.JSON(http.StatusUnauthorized, gin.H{"error": "User not authenticated"})
+                return
+        }</span>
+
+        // Get course ID from form data
+        <span class="cov0" title="0">courseIDStr := c.PostForm("course_id")
+        if courseIDStr == "" </span><span class="cov0" title="0">{
+                c.JSON(http.StatusBadRequest, gin.H{"error": "Course ID is required"})
+                return
+        }</span>
+
+        <span class="cov0" title="0">courseID, err := uuid.Parse(courseIDStr)
+        if err != nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid course ID"})
+                return
+        }</span>
+
+        // Parse form data
+        <span class="cov0" title="0">title := c.PostForm("title")
+        description := c.PostForm("description")
+        isPublicStr := c.PostForm("is_public")
+        isPublic := isPublicStr == "true"
+
+        // Ensure title is provided
+        if title == "" </span><span class="cov0" title="0">{
+                c.JSON(http.StatusBadRequest, gin.H{"error": "Title is required"})
+                return
+        }</span>
+
+        // Get file from form
+        <span class="cov0" title="0">file, fileHeader, err := c.Request.FormFile("file")
+        if err != nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusBadRequest, gin.H{"error": "File is required"})
+                return
+        }</span>
+        <span class="cov0" title="0">defer file.Close()
+
+        // Get file info
+        fileSize := fileHeader.Size
+        fileName := fileHeader.Filename
+        fileExt := filepath.Ext(fileName)
+
+        // Determine content type based on file extension
+        contentType := models.ContentTypeOther
+        switch fileExt </span>{
+        case ".mp4", ".avi", ".mov", ".wmv":<span class="cov0" title="0">
+                contentType = models.ContentTypeVideo</span>
+        case ".pdf", ".doc", ".docx", ".txt", ".ppt", ".pptx":<span class="cov0" title="0">
+                contentType = models.ContentTypeDocument</span>
+        case ".jpg", ".jpeg", ".png", ".gif", ".svg":<span class="cov0" title="0">
+                contentType = models.ContentTypeImage</span>
+        case ".mp3", ".wav", ".ogg":<span class="cov0" title="0">
+                contentType = models.ContentTypeAudio</span>
+        case ".zip", ".rar", ".7z", ".tar", ".gz":<span class="cov0" title="0">
+                contentType = models.ContentTypeArchive</span>
+        }
+
+        // Create a new content record
+        <span class="cov0" title="0">contentID := uuid.New()
+        content := models.Content{
+                ID:          contentID,
+                CourseID:    courseID,
+                UploadedBy:  userID.(uuid.UUID),
+                Title:       title,
+                Description: description,
+                FileName:    fileName,
+                FilePath:    fmt.Sprintf("%s/%s%s", courseID, contentID, fileExt),
+                FileSize:    fileSize,
+                FileType:    contentType,
+                MimeType:    fileHeader.Header.Get("Content-Type"),
+                IsPublic:    isPublic,
+        }
+
+        // Save content metadata to database
+        if err := cc.db.DB.Create(&amp;content).Error; err != nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save content metadata"})
+                return
+        }</span>
+
+        // Upload file to storage
+        <span class="cov0" title="0">ctx := c.Request.Context()
+        err = cc.storage.UploadFile(ctx, content.FilePath, file, fileSize, content.MimeType)
+        if err != nil </span><span class="cov0" title="0">{
+                // Rollback database entry if storage upload fails
+                cc.db.DB.Delete(&amp;content)
+                c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to upload file"})
+                return
+        }</span>
+
+        <span class="cov0" title="0">c.JSON(http.StatusCreated, content)</span>
+}
+
+// GetContent retrieves content metadata
+func (cc *ContentController) GetContent(c *gin.Context) <span class="cov0" title="0">{
+        // Get content ID from URL
+        contentID, err := uuid.Parse(c.Param("id"))
+        if err != nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid content ID"})
+                return
+        }</span>
+
+        // Get content from database
+        <span class="cov0" title="0">var content models.Content
+        result := cc.db.DB.First(&amp;content, contentID)
+        if result.Error != nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusNotFound, gin.H{"error": "Content not found"})
+                return
+        }</span>
+
+        // Check permissions (if not public)
+        <span class="cov0" title="0">if !content.IsPublic </span><span class="cov0" title="0">{
+                _, exists := c.Get("userID")
+                if !exists </span><span class="cov0" title="0">{
+                        c.JSON(http.StatusUnauthorized, gin.H{"error": "Authentication required for non-public content"})
+                        return
+                }</span>
+
+                // TODO: Add permission check to verify user has access to this course
+        }
+
+        // Increment view count
+        <span class="cov0" title="0">content.IncrementViews()
+        cc.db.DB.Save(&amp;content)
+
+        // Cache content metadata in Redis
+        ctx := c.Request.Context()
+        cacheKey := fmt.Sprintf("content:%s", contentID)
+        cc.db.Redis.Set(ctx, cacheKey, content, 30*time.Minute)
+
+        c.JSON(http.StatusOK, content)</span>
+}
+
+// GetContentDownloadURL generates a download URL for content
+func (cc *ContentController) GetContentDownloadURL(c *gin.Context) <span class="cov0" title="0">{
+        // Get content ID from URL
+        contentID, err := uuid.Parse(c.Param("id"))
+        if err != nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid content ID"})
+                return
+        }</span>
+
+        // Try to get from cache first
+        <span class="cov0" title="0">ctx := c.Request.Context()
+        cacheKey := fmt.Sprintf("content:%s", contentID)
+        var content models.Content
+        _, err = cc.db.Redis.Get(ctx, cacheKey).Result()
+        if err == nil </span><span class="cov0" title="0">{
+                // Use cached content if available
+                // In a real implementation, we would unmarshal the JSON
+                // For now, just get from DB
+                result := cc.db.DB.First(&amp;content, contentID)
+                if result.Error != nil </span><span class="cov0" title="0">{
+                        c.JSON(http.StatusNotFound, gin.H{"error": "Content not found"})
+                        return
+                }</span>
+        } else<span class="cov0" title="0"> {
+                // Get content from database
+                result := cc.db.DB.First(&amp;content, contentID)
+                if result.Error != nil </span><span class="cov0" title="0">{
+                        c.JSON(http.StatusNotFound, gin.H{"error": "Content not found"})
+                        return
+                }</span>
+        }
+
+        // Check permissions (if not public)
+        <span class="cov0" title="0">if !content.IsPublic </span><span class="cov0" title="0">{
+                _, exists := c.Get("userID")
+                if !exists </span><span class="cov0" title="0">{
+                        c.JSON(http.StatusUnauthorized, gin.H{"error": "Authentication required for non-public content"})
+                        return
+                }</span>
+
+                // TODO: Add permission check to verify user has access to this course
+        }
+
+        // Parse expiry time from query (default 60 minutes)
+        <span class="cov0" title="0">expiryStr := c.DefaultQuery("expiry", "60")
+        expiry, err := strconv.Atoi(expiryStr)
+        if err != nil || expiry &lt; 1 || expiry &gt; 1440 </span><span class="cov0" title="0">{ // 1 min to 24 hours
+                expiry = 60
+        }</span>
+
+        // Generate presigned URL
+        <span class="cov0" title="0">url, err := cc.storage.GetPresignedURL(ctx, content.FilePath, time.Duration(expiry)*time.Minute)
+        if err != nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate download URL"})
+                return
+        }</span>
+
+        // Increment download count
+        <span class="cov0" title="0">content.IncrementDownloads()
+        cc.db.DB.Save(&amp;content)
+
+        c.JSON(http.StatusOK, gin.H{
+                "url":     url,
+                "expires": fmt.Sprintf("%d minutes", expiry),
+        })</span>
+}
+
+// DeleteContent deletes content
+func (cc *ContentController) DeleteContent(c *gin.Context) <span class="cov0" title="0">{
+        // Get content ID from URL
+        contentID, err := uuid.Parse(c.Param("id"))
+        if err != nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid content ID"})
+                return
+        }</span>
+
+        // Get content from database
+        <span class="cov0" title="0">var content models.Content
+        result := cc.db.DB.First(&amp;content, contentID)
+        if result.Error != nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusNotFound, gin.H{"error": "Content not found"})
+                return
+        }</span>
+
+        // Check permissions
+        <span class="cov0" title="0">userID, exists := c.Get("userID")
+        userRole, _ := c.Get("userRole")
+        if !exists || (content.UploadedBy != userID.(uuid.UUID) &amp;&amp; userRole != "admin") </span><span class="cov0" title="0">{
+                c.JSON(http.StatusForbidden, gin.H{"error": "You don't have permission to delete this content"})
+                return
+        }</span>
+
+        // Delete file from storage
+        <span class="cov0" title="0">ctx := c.Request.Context()
+        err = cc.storage.DeleteFile(ctx, content.FilePath)
+        if err != nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete file from storage"})
+                return
+        }</span>
+
+        // Delete content from database
+        <span class="cov0" title="0">cc.db.DB.Delete(&amp;content)
+
+        // Delete from cache
+        cacheKey := fmt.Sprintf("content:%s", contentID)
+        cc.db.Redis.Del(ctx, cacheKey)
+
+        c.JSON(http.StatusOK, gin.H{"message": "Content deleted successfully"})</span>
+}</pre>
+		
+		<pre class="file" id="file2" style="display: none">package controllers
+
+import (
+        "net/http"
+
+        "github.com/gin-gonic/gin"
+        "github.com/hesham-ashraf/LearnVibe/backend/content-delivery/models"
+        "github.com/hesham-ashraf/LearnVibe/backend/content-delivery/services"
+)
+
+// HealthController handles health check endpoints
+type HealthController struct {
+        db            *models.Database
+        messageBroker *services.MessageBroker
+        logger        *services.LoggingService
+}
+
+// NewHealthController creates a new health controller
+func NewHealthController(db *models.Database, messageBroker *services.MessageBroker, logger *services.LoggingService) *HealthController <span class="cov0" title="0">{
+        return &amp;HealthController{
+                db:            db,
+                messageBroker: messageBroker,
+                logger:        logger,
+        }
+}</span>
+
+// CheckHealth handles the health check endpoint request
+func (hc *HealthController) CheckHealth(c *gin.Context) <span class="cov0" title="0">{
+        health := map[string]string{
+                "status":   "UP",
+                "service":  "content-delivery",
+                "database": "UP",
+                "redis":    "UP",
+                "rabbitmq": "UP",
+                "logging":  "UP",
+        }
+
+        // Check database connection
+        sqlDB, err := hc.db.DB.DB()
+        if err != nil || sqlDB.Ping() != nil </span><span class="cov0" title="0">{
+                health["database"] = "DOWN"
+                health["status"] = "DEGRADED"
+        }</span>
+
+        // Check Redis connection
+        <span class="cov0" title="0">ctx := c.Request.Context()
+        _, err = hc.db.Redis.Ping(ctx).Result()
+        if err != nil </span><span class="cov0" title="0">{
+                health["redis"] = "DOWN"
+                health["status"] = "DEGRADED"
+        }</span>
+
+        // Check RabbitMQ if available
+        <span class="cov0" title="0">if hc.messageBroker == nil </span><span class="cov0" title="0">{
+                health["rabbitmq"] = "NOT_CONFIGURED"
+                health["status"] = "DEGRADED"
+        }</span>
+
+        // Response code depends on overall status
+        <span class="cov0" title="0">responseCode := http.StatusOK
+        if health["status"] != "UP" </span><span class="cov0" title="0">{
+                responseCode = http.StatusServiceUnavailable
+        }</span>
+
+        // Log health check results
+        <span class="cov0" title="0">if hc.logger != nil </span><span class="cov0" title="0">{
+                hc.logger.Info("Health check performed", map[string]interface{}{
+                        "health_status": health,
+                })
+        }</span>
+
+        <span class="cov0" title="0">c.JSON(responseCode, health)</span>
+}
+</pre>
+		
+		<pre class="file" id="file3" style="display: none">package main
+
+import (
+        "log"
+
+        "github.com/gin-gonic/gin"
+        "github.com/hesham-ashraf/LearnVibe/backend/content-delivery/config"
+        "github.com/hesham-ashraf/LearnVibe/backend/content-delivery/controllers"
+        "github.com/hesham-ashraf/LearnVibe/backend/content-delivery/middleware"
+        "github.com/hesham-ashraf/LearnVibe/backend/content-delivery/models"
+        "github.com/hesham-ashraf/LearnVibe/backend/content-delivery/routes"
+        "github.com/hesham-ashraf/LearnVibe/backend/content-delivery/services"
+)
+
+func main() <span class="cov0" title="0">{
+        // Load configuration
+        cfg, err := config.LoadConfig()
+        if err != nil </span><span class="cov0" title="0">{
+                log.Fatalf("Failed to load configuration: %v", err)
+        }</span>
+
+        // Initialize centralized logging service
+        <span class="cov0" title="0">logger, err := services.NewLoggingService("content-delivery-service", cfg.OpenSearchURL)
+        if err != nil </span><span class="cov0" title="0">{
+                log.Printf("Warning: Failed to initialize OpenSearch logging service: %v", err)
+                log.Println("Continuing with local logging only...")
+        }</span> else<span class="cov0" title="0"> {
+                defer logger.Close()
+        }</span>
+
+        // Initialize message broker (RabbitMQ)
+        <span class="cov0" title="0">messageBroker, err := services.NewMessageBroker(cfg.RabbitMQURL, cfg.RabbitMQExchange)
+        if err != nil </span><span class="cov0" title="0">{
+                log.Printf("Warning: Failed to initialize RabbitMQ: %v", err)
+                if logger != nil </span><span class="cov0" title="0">{
+                        logger.Warning("Failed to initialize RabbitMQ message broker. Some features may be limited.", nil)
+                }</span>
+        } else<span class="cov0" title="0"> {
+                defer messageBroker.Close()
+                if logger != nil </span><span class="cov0" title="0">{
+                        logger.Info("Successfully connected to RabbitMQ message broker", nil)
+                }</span>
+        }
+
+        // Initialize database connections
+        <span class="cov0" title="0">db, err := models.InitDB()
+        if err != nil </span><span class="cov0" title="0">{
+                if logger != nil </span><span class="cov0" title="0">{
+                        logger.Fatal("Failed to connect to database", err, nil)
+                }</span> else<span class="cov0" title="0"> {
+                        log.Fatalf("Failed to connect to database: %v", err)
+                }</span>
+        }
+
+        <span class="cov0" title="0">if logger != nil </span><span class="cov0" title="0">{
+                logger.Info("Successfully connected to the database and Redis", nil)
+        }</span>
+
+        // Auto-migrate the models
+        <span class="cov0" title="0">models.MigrateDB(db.DB)
+        if logger != nil </span><span class="cov0" title="0">{
+                logger.Info("Database migration completed", nil)
+        }</span>
+
+        // Initialize storage service
+        <span class="cov0" title="0">storageService, err := services.NewStorageService(
+                cfg.MinioEndpoint,
+                cfg.MinioAccessKey,
+                cfg.MinioSecretKey,
+                cfg.MinioBucket,
+                cfg.MinioUseSSL,
+        )
+        if err != nil </span><span class="cov0" title="0">{
+                if logger != nil </span><span class="cov0" title="0">{
+                        logger.Fatal("Failed to initialize storage service", err, nil)
+                }</span> else<span class="cov0" title="0"> {
+                        log.Fatalf("Failed to initialize storage service: %v", err)
+                }</span>
+        }
+        <span class="cov0" title="0">if logger != nil </span><span class="cov0" title="0">{
+                logger.Info("Successfully connected to MinIO storage service", nil)
+        }</span>
+
+        // Initialize controllers
+        <span class="cov0" title="0">contentController := controllers.NewContentController(db, storageService)
+        healthController := controllers.NewHealthController(db, messageBroker, logger)
+
+        // Initialize router
+        router := gin.Default()
+
+        // Setup middleware
+        router.Use(gin.Logger())
+        router.Use(gin.Recovery())
+        router.Use(middleware.CORSMiddleware())
+        if logger != nil </span><span class="cov0" title="0">{
+                router.Use(middleware.RequestLoggerMiddleware(logger))
+        }</span>
+
+        // Setup routes
+        <span class="cov0" title="0">routes.SetupRoutes(router, contentController, healthController, cfg)
+
+        // Start the server
+        if logger != nil </span><span class="cov0" title="0">{
+                logger.Info("Content Delivery Service starting", map[string]interface{}{
+                        "port": cfg.Port,
+                })
+        }</span>
+        <span class="cov0" title="0">log.Printf("Content Delivery Service running on port %s", cfg.Port)
+
+        if err := router.Run(":" + cfg.Port); err != nil </span><span class="cov0" title="0">{
+                if logger != nil </span><span class="cov0" title="0">{
+                        logger.Fatal("Failed to start server", err, nil)
+                }</span> else<span class="cov0" title="0"> {
+                        log.Fatalf("Failed to start server: %v", err)
+                }</span>
+        }
+}
+</pre>
+		
+		<pre class="file" id="file4" style="display: none">package middleware
+
+import (
+        "errors"
+        "net/http"
+        "strings"
+        "time"
+
+        "github.com/gin-gonic/gin"
+        "github.com/golang-jwt/jwt/v5"
+        "github.com/google/uuid"
+)
+
+// Claims defines the structure for JWT token claims
+type Claims struct {
+        UserID uuid.UUID `json:"user_id"`
+        Role   string    `json:"role"`
+        jwt.RegisteredClaims
+}
+
+// AuthMiddleware verifies the JWT token and sets user info in the context
+func AuthMiddleware(jwtSecret string) gin.HandlerFunc <span class="cov0" title="0">{
+        return func(c *gin.Context) </span><span class="cov0" title="0">{
+                // Get the Authorization header
+                authHeader := c.GetHeader("Authorization")
+                if authHeader == "" </span><span class="cov0" title="0">{
+                        c.JSON(http.StatusUnauthorized, gin.H{"error": "Authorization header is required"})
+                        c.Abort()
+                        return
+                }</span>
+
+                // Check the Authorization header format
+                <span class="cov0" title="0">headerParts := strings.Split(authHeader, " ")
+                if len(headerParts) != 2 || headerParts[0] != "Bearer" </span><span class="cov0" title="0">{
+                        c.JSON(http.StatusUnauthorized, gin.H{"error": "Authorization header format must be Bearer {token}"})
+                        c.Abort()
+                        return
+                }</span>
+
+                // Extract the token
+                <span class="cov0" title="0">tokenString := headerParts[1]
+
+                // Parse and validate the token
+                claims := &amp;Claims{}
+
+                token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) </span><span class="cov0" title="0">{
+                        // Validate the signing method
+                        if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok </span><span class="cov0" title="0">{
+                                return nil, errors.New("unexpected signing method")
+                        }</span>
+                        <span class="cov0" title="0">return []byte(jwtSecret), nil</span>
+                })
+
+                // Handle token parsing errors
+                <span class="cov0" title="0">if err != nil </span><span class="cov0" title="0">{
+                        c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid or expired token"})
+                        c.Abort()
+                        return
+                }</span>
+
+                // Check if token is valid
+                <span class="cov0" title="0">if !token.Valid </span><span class="cov0" title="0">{
+                        c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})
+                        c.Abort()
+                        return
+                }</span>
+
+                // Check token expiration
+                <span class="cov0" title="0">if claims.ExpiresAt.Time.Before(time.Now()) </span><span class="cov0" title="0">{
+                        c.JSON(http.StatusUnauthorized, gin.H{"error": "Token expired"})
+                        c.Abort()
+                        return
+                }</span>
+
+                // Set user ID and role in context for future handlers
+                <span class="cov0" title="0">c.Set("userID", claims.UserID)
+                c.Set("userRole", claims.Role)
+
+                c.Next()</span>
+        }
+}
+
+// InstructorOrAdmin middleware ensures the user is an instructor or admin
+func InstructorOrAdmin() gin.HandlerFunc <span class="cov0" title="0">{
+        return func(c *gin.Context) </span><span class="cov0" title="0">{
+                // Get user role from context (set by AuthMiddleware)
+                role, exists := c.Get("userRole")
+                if !exists </span><span class="cov0" title="0">{
+                        c.JSON(http.StatusUnauthorized, gin.H{"error": "User not authenticated"})
+                        c.Abort()
+                        return
+                }</span>
+
+                // Check if user has instructor or admin role
+                <span class="cov0" title="0">userRole := role.(string)
+                if userRole != "instructor" &amp;&amp; userRole != "admin" </span><span class="cov0" title="0">{
+                        c.JSON(http.StatusForbidden, gin.H{"error": "This operation requires instructor or admin privileges"})
+                        c.Abort()
+                        return
+                }</span>
+
+                <span class="cov0" title="0">c.Next()</span>
+        }
+}
+
+// AdminOnly middleware ensures the user is an admin
+func AdminOnly() gin.HandlerFunc <span class="cov0" title="0">{
+        return func(c *gin.Context) </span><span class="cov0" title="0">{
+                // Get user role from context (set by AuthMiddleware)
+                role, exists := c.Get("userRole")
+                if !exists </span><span class="cov0" title="0">{
+                        c.JSON(http.StatusUnauthorized, gin.H{"error": "User not authenticated"})
+                        c.Abort()
+                        return
+                }</span>
+
+                // Check if user has admin role
+                <span class="cov0" title="0">if role != "admin" </span><span class="cov0" title="0">{
+                        c.JSON(http.StatusForbidden, gin.H{"error": "This operation requires admin privileges"})
+                        c.Abort()
+                        return
+                }</span>
+
+                <span class="cov0" title="0">c.Next()</span>
+        }
+}
+</pre>
+		
+		<pre class="file" id="file5" style="display: none">package middleware
+
+import "github.com/gin-gonic/gin"
+
+// CORSMiddleware handles Cross-Origin Resource Sharing (CORS)
+func CORSMiddleware() gin.HandlerFunc <span class="cov0" title="0">{
+        return func(c *gin.Context) </span><span class="cov0" title="0">{
+                c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
+                c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
+                c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With")
+                c.Writer.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS, GET, PUT, DELETE")
+
+                if c.Request.Method == "OPTIONS" </span><span class="cov0" title="0">{
+                        c.AbortWithStatus(204)
+                        return
+                }</span>
+
+                <span class="cov0" title="0">c.Next()</span>
+        }
+}
+</pre>
+		
+		<pre class="file" id="file6" style="display: none">package middleware
+
+import (
+        "time"
+
+        "github.com/gin-gonic/gin"
+        "github.com/hesham-ashraf/LearnVibe/backend/content-delivery/services"
+)
+
+// RequestLoggerMiddleware logs HTTP requests using the centralized logging service
+func RequestLoggerMiddleware(logger *services.LoggingService) gin.HandlerFunc <span class="cov0" title="0">{
+        return func(c *gin.Context) </span><span class="cov0" title="0">{
+                // Start timer
+                startTime := time.Now()
+
+                // Process request
+                c.Next()
+
+                // Calculate request processing time
+                endTime := time.Now()
+                latencyTime := endTime.Sub(startTime)
+
+                // Collect request details
+                requestMethod := c.Request.Method
+                requestURI := c.Request.RequestURI
+                statusCode := c.Writer.Status()
+                clientIP := c.ClientIP()
+                userAgent := c.Request.UserAgent()
+
+                // Get user ID if authenticated
+                userID, _ := c.Get("userID")
+
+                // Create metadata for the log entry
+                metadata := map[string]interface{}{
+                        "method":     requestMethod,
+                        "uri":        requestURI,
+                        "status":     statusCode,
+                        "latency_ms": latencyTime.Milliseconds(),
+                        "client_ip":  clientIP,
+                        "user_agent": userAgent,
+                }
+
+                // Add user ID if available
+                if userID != nil </span><span class="cov0" title="0">{
+                        metadata["user_id"] = userID
+                }</span>
+
+                // Determine log level based on status code
+                <span class="cov0" title="0">if statusCode &gt;= 500 </span><span class="cov0" title="0">{
+                        logger.Error("Server error in request processing", nil, metadata)
+                }</span> else<span class="cov0" title="0"> if statusCode &gt;= 400 </span><span class="cov0" title="0">{
+                        logger.Warning("Client error in request", metadata)
+                }</span> else<span class="cov0" title="0"> {
+                        logger.Info("Request processed", metadata)
+                }</span>
+        }
+}
+</pre>
+		
+		<pre class="file" id="file7" style="display: none">package models
+
+import (
+        "time"
+
+        "github.com/google/uuid"
+        "gorm.io/gorm"
+)
+
+// ContentType represents the type of content
+type ContentType string
+
+const (
+        ContentTypeVideo    ContentType = "video"
+        ContentTypeDocument ContentType = "document"
+        ContentTypeImage    ContentType = "image"
+        ContentTypeAudio    ContentType = "audio"
+        ContentTypeArchive  ContentType = "archive"
+        ContentTypeOther    ContentType = "other"
+)
+
+// Content represents a media content item in the system
+type Content struct {
+        ID          uuid.UUID   `gorm:"type:uuid;primaryKey" json:"id"`
+        CourseID    uuid.UUID   `gorm:"type:uuid;index" json:"course_id"`
+        UploadedBy  uuid.UUID   `gorm:"type:uuid;index" json:"uploaded_by"`
+        Title       string      `json:"title"`
+        Description string      `json:"description"`
+        FileName    string      `json:"file_name"`
+        FilePath    string      `json:"file_path"`
+        FileSize    int64       `json:"file_size"`
+        FileType    ContentType `gorm:"type:varchar(20)" json:"file_type"`
+        MimeType    string      `json:"mime_type"`
+        Duration    *int        `json:"duration,omitempty"` // For video/audio in seconds
+        IsPublic    bool        `gorm:"default:false" json:"is_public"`
+        Downloads   int         `gorm:"default:0" json:"downloads"`
+        Views       int         `gorm:"default:0" json:"views"`
+        CreatedAt   time.Time   `json:"created_at"`
+        UpdatedAt   time.Time   `json:"updated_at"`
+}
+
+// BeforeCreate hook to set UUID before content creation
+func (c *Content) BeforeCreate(tx *gorm.DB) error <span class="cov0" title="0">{
+        if c.ID == uuid.Nil </span><span class="cov0" title="0">{
+                c.ID = uuid.New()
+        }</span>
+        <span class="cov0" title="0">return nil</span>
+}
+
+// IncrementViews increments the view count for the content
+func (c *Content) IncrementViews() <span class="cov0" title="0">{
+        c.Views++
+}</span>
+
+// IncrementDownloads increments the download count for the content
+func (c *Content) IncrementDownloads() <span class="cov0" title="0">{
+        c.Downloads++
+}</span>
+
+// GetPresignedURL is a placeholder for getting a presigned URL for the content
+// In a real implementation, this would interact with MinIO/S3
+func (c *Content) GetPresignedURL(expiryMinutes int) (string, error) <span class="cov0" title="0">{
+        // This would be implemented to get a presigned URL from MinIO/S3
+        // For now, it returns a mock URL based on the file path
+        return "/api/content/download/" + c.ID.String(), nil
+}</span>
+</pre>
+		
+		<pre class="file" id="file8" style="display: none">package models
+
+import (
+        "context"
+        "fmt"
+        "log"
+        "os"
+        "time"
+
+        "github.com/cenkalti/backoff/v4"
+        "github.com/go-redis/redis/v8"
+        "github.com/joho/godotenv"
+        "github.com/sony/gobreaker"
+        "gorm.io/driver/postgres"
+        "gorm.io/gorm"
+        "gorm.io/gorm/logger"
+)
+
+// Database represents our database connections
+type Database struct {
+        DB    *gorm.DB
+        Redis *redis.Client
+}
+
+// Load environment variables from .env file
+func LoadEnv() <span class="cov0" title="0">{
+        // We'll just attempt to load .env but not fail if it doesn't exist
+        _ = godotenv.Load()
+        // Log a message but continue execution
+        log.Println("Loaded environment variables (if .env file exists)")
+}</span>
+
+// InitDB initializes both SQL and Redis databases
+func InitDB() (*Database, error) <span class="cov0" title="0">{
+        // Load environment variables
+        LoadEnv()
+
+        // Initialize PostgreSQL
+        db, err := initPostgres()
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("failed to initialize postgres: %v", err)
+        }</span>
+
+        // Initialize Redis
+        <span class="cov0" title="0">rdb, err := initRedis()
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("failed to initialize redis: %v", err)
+        }</span>
+
+        <span class="cov0" title="0">return &amp;Database{
+                DB:    db,
+                Redis: rdb,
+        }, nil</span>
+}
+
+// initPostgres initializes PostgreSQL with retry and circuit breaker patterns
+func initPostgres() (*gorm.DB, error) <span class="cov0" title="0">{
+        // Get database URL from environment variables or use default
+        dbURL := os.Getenv("DATABASE_URL")
+        if dbURL == "" </span><span class="cov0" title="0">{
+                // Use a default connection string if environment variable is not set
+                dbURL = "postgres://postgres:vampire8122003@localhost:5432/learnvibe_content"
+                log.Println("DATABASE_URL not set, using default:", dbURL)
+        }</span> else<span class="cov0" title="0"> {
+                log.Println("Using DATABASE_URL from environment")
+        }</span>
+
+        // Open a connection to the database with retry logic
+        <span class="cov0" title="0">var db *gorm.DB
+        var err error
+        operation := func() error </span><span class="cov0" title="0">{
+                db, err = gorm.Open(postgres.Open(dbURL), &amp;gorm.Config{
+                        Logger: logger.Default.LogMode(logger.Info),
+                })
+                return err
+        }</span>
+
+        // Retry with exponential backoff for transient connection issues
+        <span class="cov0" title="0">err = backoff.Retry(operation, backoff.NewExponentialBackOff())
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("error opening database: %v", err)
+        }</span>
+
+        // Circuit Breaker setup for database
+        <span class="cov0" title="0">settings := gobreaker.Settings{
+                Name:    "DatabaseService",
+                Timeout: 5 * time.Second,
+        }
+        cb := gobreaker.NewCircuitBreaker(settings)
+
+        // Checking the database connection through the circuit breaker
+        _, err = cb.Execute(func() (interface{}, error) </span><span class="cov0" title="0">{
+                sqlDB, err := db.DB()
+                if err != nil </span><span class="cov0" title="0">{
+                        return nil, err
+                }</span>
+                <span class="cov0" title="0">return sqlDB, nil</span>
+        })
+        <span class="cov0" title="0">if err != nil </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("database connection failed: %v", err)
+        }</span>
+
+        <span class="cov0" title="0">return db, nil</span>
+}
+
+// initRedis initializes Redis with retry and circuit breaker patterns
+func initRedis() (*redis.Client, error) <span class="cov0" title="0">{
+        redisURL := os.Getenv("REDIS_URL")
+        if redisURL == "" </span><span class="cov0" title="0">{
+                redisURL = "localhost:6379"
+                log.Println("REDIS_URL not set, using default:", redisURL)
+        }</span>
+
+        <span class="cov0" title="0">redisPass := os.Getenv("REDIS_PASSWORD")
+
+        // Create Redis client
+        var rdb *redis.Client
+        operation := func() error </span><span class="cov0" title="0">{
+                rdb = redis.NewClient(&amp;redis.Options{
+                        Addr:        redisURL,
+                        Password:    redisPass,
+                        DB:          0, // default DB
+                        DialTimeout: 5 * time.Second,
+                })
+
+                ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+                defer cancel()
+
+                // Ping Redis to check the connection
+                _, err := rdb.Ping(ctx).Result()
+                return err
+        }</span>
+
+        // Retry with exponential backoff for transient connection issues
+        <span class="cov0" title="0">err := backoff.Retry(operation, backoff.NewExponentialBackOff())
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("error connecting to redis: %v", err)
+        }</span>
+
+        // Circuit Breaker setup for Redis
+        <span class="cov0" title="0">settings := gobreaker.Settings{
+                Name:    "RedisService",
+                Timeout: 5 * time.Second,
+        }
+        cb := gobreaker.NewCircuitBreaker(settings)
+
+        // Checking the Redis connection through the circuit breaker
+        ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+        defer cancel()
+
+        _, err = cb.Execute(func() (interface{}, error) </span><span class="cov0" title="0">{
+                return rdb.Ping(ctx).Result()
+        }</span>)
+        <span class="cov0" title="0">if err != nil </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("redis connection failed: %v", err)
+        }</span>
+
+        <span class="cov0" title="0">return rdb, nil</span>
+}
+
+// MigrateDB performs database migrations with retry logic
+func MigrateDB(db *gorm.DB) <span class="cov0" title="0">{
+        // Migrate models in the correct order to avoid foreign key issues
+        log.Println("Starting database migration...")
+
+        log.Println("Migrating Content model...")
+        if err := db.AutoMigrate(&amp;Content{}); err != nil </span><span class="cov0" title="0">{
+                log.Fatal("Error migrating Content model:", err)
+        }</span>
+
+        <span class="cov0" title="0">log.Println("Database migration completed successfully!")</span>
+}</pre>
+		
+		<pre class="file" id="file9" style="display: none">package routes
+
+import (
+        "github.com/gin-gonic/gin"
+        "github.com/hesham-ashraf/LearnVibe/backend/content-delivery/config"
+        "github.com/hesham-ashraf/LearnVibe/backend/content-delivery/controllers"
+        "github.com/hesham-ashraf/LearnVibe/backend/content-delivery/middleware"
+)
+
+// SetupRoutes configures all the routes for the application
+func SetupRoutes(router *gin.Engine, contentController *controllers.ContentController, healthController *controllers.HealthController, cfg *config.Config) <span class="cov0" title="0">{
+        // Health check
+        router.GET("/health", healthController.CheckHealth)
+
+        // API routes (protected)
+        api := router.Group("/api")
+        api.Use(middleware.AuthMiddleware(cfg.JWTSecret))
+        </span><span class="cov0" title="0">{
+                // Content routes
+                content := api.Group("/content")
+                </span><span class="cov0" title="0">{
+                        // Routes accessible to all authenticated users
+                        content.GET("/:id", contentController.GetContent)
+                        content.GET("/:id/download", contentController.GetContentDownloadURL)
+
+                        // Routes restricted to instructors and admins
+                        instructorRoutes := content.Group("")
+                        instructorRoutes.Use(middleware.InstructorOrAdmin())
+                        </span><span class="cov0" title="0">{
+                                instructorRoutes.POST("", contentController.UploadContent)
+                                instructorRoutes.DELETE("/:id", contentController.DeleteContent)
+                        }</span>
+                }
+
+                // For direct public access to content without authentication
+                // This would typically be used for publicly available content
+                // or for content that's served through signed URLs
+                <span class="cov0" title="0">public := router.Group("/public")
+                </span><span class="cov0" title="0">{
+                        // These routes would be implemented in a real system
+                        // They would likely validate signed URLs to control access
+                        public.GET("/content/:id", contentController.GetContent)
+                }</span>
+        }
+}
+</pre>
+		
+		<pre class="file" id="file10" style="display: none">package services
+
+import (
+        "bytes"
+        "context"
+        "encoding/json"
+        "fmt"
+        "log"
+        "net/http"
+        "os"
+        "time"
+
+        "github.com/cenkalti/backoff/v4"
+        "github.com/sony/gobreaker"
+)
+
+// LogLevel represents the severity level of a log message
+type LogLevel string
+
+const (
+        // LogLevelDebug represents debug log level
+        LogLevelDebug LogLevel = "debug"
+        // LogLevelInfo represents info log level
+        LogLevelInfo LogLevel = "info"
+        // LogLevelWarning represents warning log level
+        LogLevelWarning LogLevel = "warning"
+        // LogLevelError represents error log level
+        LogLevelError LogLevel = "error"
+        // LogLevelFatal represents fatal log level
+        LogLevelFatal LogLevel = "fatal"
+)
+
+// LogEntry represents a structured log entry
+type LogEntry struct {
+        Timestamp   time.Time              `json:"@timestamp"`
+        Level       LogLevel               `json:"level"`
+        Message     string                 `json:"message"`
+        ServiceName string                 `json:"service_name"`
+        Hostname    string                 `json:"hostname"`
+        Metadata    map[string]interface{} `json:"metadata,omitempty"`
+}
+
+// LoggingService provides centralized logging functionality
+type LoggingService struct {
+        serviceName   string
+        opensearchURL string
+        hostname      string
+        client        *http.Client
+        cb            *gobreaker.CircuitBreaker
+        asyncLogs     chan LogEntry
+}
+
+// NewLoggingService creates a new instance of the logging service
+func NewLoggingService(serviceName, opensearchURL string) (*LoggingService, error) <span class="cov0" title="0">{
+        hostname, err := os.Hostname()
+        if err != nil </span><span class="cov0" title="0">{
+                hostname = "unknown"
+        }</span>
+
+        // Set up circuit breaker for logging
+        <span class="cov0" title="0">settings := gobreaker.Settings{
+                Name:    "LoggingService",
+                Timeout: 30 * time.Second,
+        }
+
+        // Create HTTP client with timeout
+        client := &amp;http.Client{
+                Timeout: 5 * time.Second,
+        }
+
+        // Create logging service
+        ls := &amp;LoggingService{
+                serviceName:   serviceName,
+                opensearchURL: opensearchURL,
+                hostname:      hostname,
+                client:        client,
+                cb:            gobreaker.NewCircuitBreaker(settings),
+                asyncLogs:     make(chan LogEntry, 1000), // Buffer for 1000 log entries
+        }
+
+        // Start the background worker to process logs asynchronously
+        go ls.processLogs()
+
+        // Verify connection to OpenSearch
+        if err := ls.verifyConnection(); err != nil </span><span class="cov0" title="0">{
+                log.Printf("Warning: Could not connect to OpenSearch: %v. Will retry in background.", err)
+        }</span>
+
+        <span class="cov0" title="0">return ls, nil</span>
+}
+
+// verifyConnection checks the connection to OpenSearch
+func (ls *LoggingService) verifyConnection() error <span class="cov0" title="0">{
+        ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+        defer cancel()
+
+        req, err := http.NewRequestWithContext(ctx, "GET", ls.opensearchURL, nil)
+        if err != nil </span><span class="cov0" title="0">{
+                return fmt.Errorf("failed to create request: %v", err)
+        }</span>
+
+        <span class="cov0" title="0">resp, err := ls.client.Do(req)
+        if err != nil </span><span class="cov0" title="0">{
+                return fmt.Errorf("failed to connect to OpenSearch: %v", err)
+        }</span>
+        <span class="cov0" title="0">defer resp.Body.Close()
+
+        if resp.StatusCode &gt;= 400 </span><span class="cov0" title="0">{
+                return fmt.Errorf("OpenSearch returned status code %d", resp.StatusCode)
+        }</span>
+
+        <span class="cov0" title="0">return nil</span>
+}
+
+// processLogs processes logs asynchronously
+func (ls *LoggingService) processLogs() <span class="cov0" title="0">{
+        for entry := range ls.asyncLogs </span><span class="cov0" title="0">{
+                // Try to send the log entry, with backoff
+                operation := func() error </span><span class="cov0" title="0">{
+                        _, err := ls.cb.Execute(func() (interface{}, error) </span><span class="cov0" title="0">{
+                                return ls.sendLogToOpenSearch(entry)
+                        }</span>)
+                        <span class="cov0" title="0">return err</span>
+                }
+
+                // Use exponential backoff for retries
+                <span class="cov0" title="0">backoffConfig := backoff.NewExponentialBackOff()
+                backoffConfig.MaxElapsedTime = 1 * time.Minute
+
+                if err := backoff.Retry(operation, backoffConfig); err != nil </span><span class="cov0" title="0">{
+                        // If all retries failed, log locally as fallback
+                        log.Printf("Failed to send log to OpenSearch after retries: %v", err)
+                        log.Printf("[%s] %s: %s", entry.Level, entry.Timestamp.Format(time.RFC3339), entry.Message)
+                }</span>
+        }
+}
+
+// sendLogToOpenSearch sends a log entry to OpenSearch
+func (ls *LoggingService) sendLogToOpenSearch(entry LogEntry) (interface{}, error) <span class="cov0" title="0">{
+        // Format the log entry as JSON
+        data, err := json.Marshal(entry)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("failed to marshal log entry: %v", err)
+        }</span>
+
+        // Create a context with timeout
+        <span class="cov0" title="0">ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+        defer cancel()
+
+        // Prepare the request
+        req, err := http.NewRequestWithContext(
+                ctx,
+                "POST",
+                fmt.Sprintf("%s/logs-%s/_doc", ls.opensearchURL, time.Now().Format("2006.01.02")),
+                bytes.NewBuffer(data),
+        )
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("failed to create request: %v", err)
+        }</span>
+        <span class="cov0" title="0">req.Header.Set("Content-Type", "application/json")
+
+        // Send the request
+        resp, err := ls.client.Do(req)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("failed to send log to OpenSearch: %v", err)
+        }</span>
+        <span class="cov0" title="0">defer resp.Body.Close()
+
+        // Check if the request was successful
+        if resp.StatusCode &gt;= 400 </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("OpenSearch returned status code %d", resp.StatusCode)
+        }</span>
+
+        <span class="cov0" title="0">return nil, nil</span>
+}
+
+// createLogEntry creates a log entry with the given level and message
+func (ls *LoggingService) createLogEntry(level LogLevel, message string, metadata map[string]interface{}) LogEntry <span class="cov0" title="0">{
+        return LogEntry{
+                Timestamp:   time.Now(),
+                Level:       level,
+                Message:     message,
+                ServiceName: ls.serviceName,
+                Hostname:    ls.hostname,
+                Metadata:    metadata,
+        }
+}</span>
+
+// Log logs a message with the specified level
+func (ls *LoggingService) Log(level LogLevel, message string, metadata map[string]interface{}) <span class="cov0" title="0">{
+        entry := ls.createLogEntry(level, message, metadata)
+
+        // Always log to console as fallback
+        log.Printf("[%s] %s", level, message)
+
+        // Queue for async processing
+        select </span>{
+        case ls.asyncLogs &lt;- entry:<span class="cov0" title="0"></span>
+                // Log entry queued
+        default:<span class="cov0" title="0">
+                // Channel is full, log locally as fallback
+                log.Printf("Warning: Log buffer full. Logging locally: [%s] %s", level, message)</span>
+        }
+}
+
+// Debug logs a debug message
+func (ls *LoggingService) Debug(message string, metadata map[string]interface{}) <span class="cov0" title="0">{
+        ls.Log(LogLevelDebug, message, metadata)
+}</span>
+
+// Info logs an info message
+func (ls *LoggingService) Info(message string, metadata map[string]interface{}) <span class="cov0" title="0">{
+        ls.Log(LogLevelInfo, message, metadata)
+}</span>
+
+// Warning logs a warning message
+func (ls *LoggingService) Warning(message string, metadata map[string]interface{}) <span class="cov0" title="0">{
+        ls.Log(LogLevelWarning, message, metadata)
+}</span>
+
+// Error logs an error message
+func (ls *LoggingService) Error(message string, err error, metadata map[string]interface{}) <span class="cov0" title="0">{
+        if metadata == nil </span><span class="cov0" title="0">{
+                metadata = make(map[string]interface{})
+        }</span>
+        <span class="cov0" title="0">if err != nil </span><span class="cov0" title="0">{
+                metadata["error"] = err.Error()
+        }</span>
+        <span class="cov0" title="0">ls.Log(LogLevelError, message, metadata)</span>
+}
+
+// Fatal logs a fatal message and exits the application
+func (ls *LoggingService) Fatal(message string, err error, metadata map[string]interface{}) <span class="cov0" title="0">{
+        if metadata == nil </span><span class="cov0" title="0">{
+                metadata = make(map[string]interface{})
+        }</span>
+        <span class="cov0" title="0">if err != nil </span><span class="cov0" title="0">{
+                metadata["error"] = err.Error()
+        }</span>
+        <span class="cov0" title="0">ls.Log(LogLevelFatal, message, metadata)
+        log.Fatalf("FATAL: %s: %v", message, err)</span>
+}
+
+// Close closes the logging service and flushes any pending logs
+func (ls *LoggingService) Close() <span class="cov0" title="0">{
+        close(ls.asyncLogs)
+}</span>
+</pre>
+		
+		<pre class="file" id="file11" style="display: none">package services
+
+import (
+        "context"
+        "encoding/json"
+        "fmt"
+        "log"
+        "time"
+
+        "github.com/cenkalti/backoff/v4"
+        amqp "github.com/rabbitmq/amqp091-go"
+        "github.com/sony/gobreaker"
+)
+
+// MessageBroker is a service for publishing and consuming messages from RabbitMQ
+type MessageBroker struct {
+        conn         *amqp.Connection
+        ch           *amqp.Channel
+        exchangeName string
+        queues       map[string]bool
+}
+
+// MessagePayload represents the message payload structure
+type MessagePayload struct {
+        EventType string      `json:"event_type"`
+        Data      interface{} `json:"data"`
+        UserID    string      `json:"user_id,omitempty"`
+        Timestamp time.Time   `json:"timestamp"`
+}
+
+// NewMessageBroker creates a new MessageBroker instance
+func NewMessageBroker(rabbitmqURL, exchangeName string) (*MessageBroker, error) <span class="cov0" title="0">{
+        var conn *amqp.Connection
+        var err error
+
+        // Use exponential backoff to retry connection
+        operation := func() error </span><span class="cov0" title="0">{
+                conn, err = amqp.Dial(rabbitmqURL)
+                if err != nil </span><span class="cov0" title="0">{
+                        return fmt.Errorf("failed to connect to RabbitMQ: %v", err)
+                }</span>
+                <span class="cov0" title="0">return nil</span>
+        }
+
+        <span class="cov0" title="0">err = backoff.Retry(operation, backoff.NewExponentialBackOff())
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+
+        // Create a circuit breaker for RabbitMQ operations
+        <span class="cov0" title="0">settings := gobreaker.Settings{
+                Name:    "RabbitMQCircuitBreaker",
+                Timeout: 30 * time.Second,
+        }
+        cb := gobreaker.NewCircuitBreaker(settings)
+
+        var ch *amqp.Channel
+        _, err = cb.Execute(func() (interface{}, error) </span><span class="cov0" title="0">{
+                ch, err = conn.Channel()
+                if err != nil </span><span class="cov0" title="0">{
+                        return nil, fmt.Errorf("failed to open a channel: %v", err)
+                }</span>
+
+                // Declare exchange
+                <span class="cov0" title="0">err = ch.ExchangeDeclare(
+                        exchangeName, // name
+                        "topic",      // type
+                        true,         // durable
+                        false,        // auto-deleted
+                        false,        // internal
+                        false,        // no-wait
+                        nil,          // arguments
+                )
+                if err != nil </span><span class="cov0" title="0">{
+                        return nil, fmt.Errorf("failed to declare an exchange: %v", err)
+                }</span>
+                <span class="cov0" title="0">return nil, nil</span>
+        })
+
+        <span class="cov0" title="0">if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+
+        <span class="cov0" title="0">return &amp;MessageBroker{
+                conn:         conn,
+                ch:           ch,
+                exchangeName: exchangeName,
+                queues:       make(map[string]bool),
+        }, nil</span>
+}
+
+// PublishMessage publishes a message to the specified routing key
+func (mb *MessageBroker) PublishMessage(ctx context.Context, routingKey string, message interface{}) error <span class="cov0" title="0">{
+        // Marshal the message
+        payload := MessagePayload{
+                EventType: routingKey,
+                Data:      message,
+                Timestamp: time.Now(),
+        }
+
+        jsonMessage, err := json.Marshal(payload)
+        if err != nil </span><span class="cov0" title="0">{
+                return fmt.Errorf("failed to marshal message: %v", err)
+        }</span>
+
+        // Create a circuit breaker for the publish operation
+        <span class="cov0" title="0">settings := gobreaker.Settings{
+                Name:    "PublishMessage",
+                Timeout: 5 * time.Second,
+        }
+        cb := gobreaker.NewCircuitBreaker(settings)
+
+        _, err = cb.Execute(func() (interface{}, error) </span><span class="cov0" title="0">{
+                return nil, mb.ch.PublishWithContext(
+                        ctx,
+                        mb.exchangeName, // exchange
+                        routingKey,      // routing key
+                        false,           // mandatory
+                        false,           // immediate
+                        amqp.Publishing{
+                                ContentType: "application/json",
+                                Body:        jsonMessage,
+                        })
+        }</span>)
+
+        <span class="cov0" title="0">if err != nil </span><span class="cov0" title="0">{
+                return fmt.Errorf("failed to publish message: %v", err)
+        }</span>
+
+        <span class="cov0" title="0">log.Printf("Message published to exchange %s with routing key %s", mb.exchangeName, routingKey)
+        return nil</span>
+}
+
+// ConsumeMessages sets up a consumer for a queue with the given routing key pattern
+func (mb *MessageBroker) ConsumeMessages(queueName, routingKeyPattern string, handler func(MessagePayload) error) error <span class="cov0" title="0">{
+        // Declare a queue
+        q, err := mb.ch.QueueDeclare(
+                queueName, // name
+                true,      // durable
+                false,     // delete when unused
+                false,     // exclusive
+                false,     // no-wait
+                nil,       // arguments
+        )
+        if err != nil </span><span class="cov0" title="0">{
+                return fmt.Errorf("failed to declare a queue: %v", err)
+        }</span>
+
+        // Bind the queue to the exchange with the routing key pattern
+        <span class="cov0" title="0">err = mb.ch.QueueBind(
+                q.Name,            // queue name
+                routingKeyPattern, // routing key
+                mb.exchangeName,   // exchange
+                false,
+                nil,
+        )
+        if err != nil </span><span class="cov0" title="0">{
+                return fmt.Errorf("failed to bind a queue: %v", err)
+        }</span>
+
+        // Set up the consumer
+        <span class="cov0" title="0">msgs, err := mb.ch.Consume(
+                q.Name, // queue
+                "",     // consumer
+                false,  // auto-ack
+                false,  // exclusive
+                false,  // no-local
+                false,  // no-wait
+                nil,    // args
+        )
+        if err != nil </span><span class="cov0" title="0">{
+                return fmt.Errorf("failed to register a consumer: %v", err)
+        }</span>
+
+        // Mark this queue as successfully set up
+        <span class="cov0" title="0">mb.queues[queueName] = true
+
+        // Start a goroutine to consume messages
+        go func() </span><span class="cov0" title="0">{
+                for d := range msgs </span><span class="cov0" title="0">{
+                        var payload MessagePayload
+                        if err := json.Unmarshal(d.Body, &amp;payload); err != nil </span><span class="cov0" title="0">{
+                                log.Printf("Error deserializing message: %v", err)
+                                d.Nack(false, true) // Negative acknowledgement, requeue
+                                continue</span>
+                        }
+
+                        // Process the message
+                        <span class="cov0" title="0">err := handler(payload)
+                        if err != nil </span><span class="cov0" title="0">{
+                                log.Printf("Error processing message: %v", err)
+                                d.Nack(false, true) // Negative acknowledgement, requeue
+                        }</span> else<span class="cov0" title="0"> {
+                                d.Ack(false) // Acknowledge the message
+                        }</span>
+                }
+                <span class="cov0" title="0">log.Printf("Consumer for queue %s has been closed", queueName)</span>
+        }()
+
+        <span class="cov0" title="0">log.Printf("Started consuming messages from queue %s with routing key pattern %s", queueName, routingKeyPattern)
+        return nil</span>
+}
+
+// Close closes the connection to RabbitMQ
+func (mb *MessageBroker) Close() error <span class="cov0" title="0">{
+        if err := mb.ch.Close(); err != nil </span><span class="cov0" title="0">{
+                return fmt.Errorf("failed to close channel: %v", err)
+        }</span>
+        <span class="cov0" title="0">if err := mb.conn.Close(); err != nil </span><span class="cov0" title="0">{
+                return fmt.Errorf("failed to close connection: %v", err)
+        }</span>
+        <span class="cov0" title="0">return nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file12" style="display: none">package services
+
+import (
+        "context"
+        "fmt"
+        "io"
+        "log"
+        "net/url"
+        "time"
+
+        "github.com/cenkalti/backoff/v4"
+        "github.com/minio/minio-go/v7"
+        "github.com/minio/minio-go/v7/pkg/credentials"
+        "github.com/sony/gobreaker"
+)
+
+// StorageService handles object storage operations
+type StorageService struct {
+        client     *minio.Client
+        bucketName string
+}
+
+// NewStorageService creates a new storage service
+func NewStorageService(endpoint, accessKey, secretKey, bucketName string, useSSL bool) (*StorageService, error) <span class="cov0" title="0">{
+        // Initialize MinIO client with retry logic
+        var minioClient *minio.Client
+        var err error
+
+        operation := func() error </span><span class="cov0" title="0">{
+                // Initialize MinIO client
+                minioClient, err = minio.New(endpoint, &amp;minio.Options{
+                        Creds:  credentials.NewStaticV4(accessKey, secretKey, ""),
+                        Secure: useSSL,
+                })
+                if err != nil </span><span class="cov0" title="0">{
+                        return fmt.Errorf("failed to create MinIO client: %v", err)
+                }</span>
+
+                // Check if the bucket exists
+                <span class="cov0" title="0">ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+                defer cancel()
+
+                exists, err := minioClient.BucketExists(ctx, bucketName)
+                if err != nil </span><span class="cov0" title="0">{
+                        return fmt.Errorf("failed to check if bucket exists: %v", err)
+                }</span>
+
+                // Create bucket if it doesn't exist
+                <span class="cov0" title="0">if !exists </span><span class="cov0" title="0">{
+                        ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+                        defer cancel()
+
+                        err = minioClient.MakeBucket(ctx, bucketName, minio.MakeBucketOptions{})
+                        if err != nil </span><span class="cov0" title="0">{
+                                return fmt.Errorf("failed to create bucket: %v", err)
+                        }</span>
+                        <span class="cov0" title="0">log.Printf("Created bucket: %s\n", bucketName)</span>
+                }
+
+                <span class="cov0" title="0">return nil</span>
+        }
+
+        // Retry with exponential backoff for transient connection issues
+        <span class="cov0" title="0">err = backoff.Retry(operation, backoff.NewExponentialBackOff())
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+
+        // Circuit Breaker setup for MinIO
+        <span class="cov0" title="0">settings := gobreaker.Settings{
+                Name:    "MinIOService",
+                Timeout: 10 * time.Second,
+        }
+        cb := gobreaker.NewCircuitBreaker(settings)
+
+        // Final check with circuit breaker
+        _, err = cb.Execute(func() (interface{}, error) </span><span class="cov0" title="0">{
+                ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+                defer cancel()
+
+                return minioClient.BucketExists(ctx, bucketName)
+        }</span>)
+        <span class="cov0" title="0">if err != nil </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("MinIO connection failed: %v", err)
+        }</span>
+
+        <span class="cov0" title="0">return &amp;StorageService{
+                client:     minioClient,
+                bucketName: bucketName,
+        }, nil</span>
+}
+
+// UploadFile uploads a file to the storage service
+func (s *StorageService) UploadFile(ctx context.Context, objectName string, reader io.Reader, size int64, contentType string) error <span class="cov0" title="0">{
+        // Circuit breaker for upload operation
+        settings := gobreaker.Settings{
+                Name:    "MinIOUploadService",
+                Timeout: 30 * time.Second,
+        }
+        cb := gobreaker.NewCircuitBreaker(settings)
+
+        _, err := cb.Execute(func() (interface{}, error) </span><span class="cov0" title="0">{
+                // Upload with exponential backoff retry
+                operation := func() error </span><span class="cov0" title="0">{
+                        _, err := s.client.PutObject(ctx, s.bucketName, objectName, reader, size, minio.PutObjectOptions{
+                                ContentType: contentType,
+                        })
+                        return err
+                }</span>
+
+                // Use a shorter backoff for uploads
+                <span class="cov0" title="0">backOff := backoff.NewExponentialBackOff()
+                backOff.MaxElapsedTime = 2 * time.Minute
+
+                return nil, backoff.Retry(operation, backOff)</span>
+        })
+
+        <span class="cov0" title="0">if err != nil </span><span class="cov0" title="0">{
+                return fmt.Errorf("failed to upload file: %v", err)
+        }</span>
+
+        <span class="cov0" title="0">return nil</span>
+}
+
+// GetPresignedURL generates a presigned URL for downloading a file
+func (s *StorageService) GetPresignedURL(ctx context.Context, objectName string, expiry time.Duration) (string, error) <span class="cov0" title="0">{
+        // Circuit breaker for presigned URL generation
+        settings := gobreaker.Settings{
+                Name:    "MinIOPresignedURLService",
+                Timeout: 5 * time.Second,
+        }
+        cb := gobreaker.NewCircuitBreaker(settings)
+
+        result, err := cb.Execute(func() (interface{}, error) </span><span class="cov0" title="0">{
+                // Get presigned URL with retry
+                var presignedURL string
+                operation := func() error </span><span class="cov0" title="0">{
+                        // Generate presigned URL
+                        reqParams := url.Values{} // Use url.Values instead of map[string]string
+
+                        url, err := s.client.PresignedGetObject(ctx, s.bucketName, objectName, expiry, reqParams)
+                        if err != nil </span><span class="cov0" title="0">{
+                                return err
+                        }</span>
+
+                        <span class="cov0" title="0">presignedURL = url.String()
+                        return nil</span>
+                }
+
+                // Retry with exponential backoff
+                <span class="cov0" title="0">err := backoff.Retry(operation, backoff.NewExponentialBackOff())
+                if err != nil </span><span class="cov0" title="0">{
+                        return "", err
+                }</span>
+
+                <span class="cov0" title="0">return presignedURL, nil</span>
+        })
+
+        <span class="cov0" title="0">if err != nil </span><span class="cov0" title="0">{
+                return "", fmt.Errorf("failed to generate presigned URL: %v", err)
+        }</span>
+
+        <span class="cov0" title="0">return result.(string), nil</span>
+}
+
+// DeleteFile deletes a file from the storage
+func (s *StorageService) DeleteFile(ctx context.Context, objectName string) error <span class="cov0" title="0">{
+        // Circuit breaker for delete operation
+        settings := gobreaker.Settings{
+                Name:    "MinIODeleteService",
+                Timeout: 10 * time.Second,
+        }
+        cb := gobreaker.NewCircuitBreaker(settings)
+
+        _, err := cb.Execute(func() (interface{}, error) </span><span class="cov0" title="0">{
+                // Delete with retry
+                operation := func() error </span><span class="cov0" title="0">{
+                        return s.client.RemoveObject(ctx, s.bucketName, objectName, minio.RemoveObjectOptions{})
+                }</span>
+
+                <span class="cov0" title="0">return nil, backoff.Retry(operation, backoff.NewExponentialBackOff())</span>
+        })
+
+        <span class="cov0" title="0">if err != nil </span><span class="cov0" title="0">{
+                return fmt.Errorf("failed to delete file: %v", err)
+        }</span>
+
+        <span class="cov0" title="0">return nil</span>
+}</pre>
+		
+		</div>
+	</body>
+	<script>
+	(function() {
+		var files = document.getElementById('files');
+		var visible;
+		files.addEventListener('change', onChange, false);
+		function select(part) {
+			if (visible)
+				visible.style.display = 'none';
+			visible = document.getElementById(part);
+			if (!visible)
+				return;
+			files.value = part;
+			visible.style.display = 'block';
+			location.hash = part;
+		}
+		function onChange() {
+			select(files.value);
+			window.scrollTo(0, 0);
+		}
+		if (location.hash != "") {
+			select(location.hash.substr(1));
+		}
+		if (!visible) {
+			select("file0");
+		}
+	})();
+	</script>
+</html>

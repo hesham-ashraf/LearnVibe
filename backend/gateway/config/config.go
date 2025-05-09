@@ -11,7 +11,9 @@ import (
 // Config holds the application configuration
 type Config struct {
 	// Server settings
-	Port string
+	Port        string
+	EnableHTTPS bool
+	HTTPSPort   string
 
 	// JWT settings for validation
 	JWTSecret string
@@ -43,6 +45,8 @@ func LoadConfig() (*Config, error) {
 	// Load configuration
 	config := &Config{
 		Port:                      getEnv("PORT", "8000"),
+		EnableHTTPS:               getEnvAsBool("ENABLE_HTTPS", false),
+		HTTPSPort:                 getEnv("HTTPS_PORT", "8443"),
 		JWTSecret:                 getEnv("JWT_SECRET", "your-secret-key"),
 		RateLimitRequests:         getEnvAsInt("RATE_LIMIT_REQUESTS", 100),
 		RateLimitDuration:         getEnvAsInt("RATE_LIMIT_DURATION", 60),
@@ -83,6 +87,22 @@ func getEnvAsInt(key string, defaultValue int) int {
 	value, err := strconv.Atoi(valueStr)
 	if err != nil {
 		log.Printf("WARNING: Invalid integer format for %s, using default value %d", key, defaultValue)
+		return defaultValue
+	}
+
+	return value
+}
+
+// getEnvAsBool gets an environment variable as bool or returns a default value
+func getEnvAsBool(key string, defaultValue bool) bool {
+	valueStr := getEnv(key, "")
+	if valueStr == "" {
+		return defaultValue
+	}
+
+	value, err := strconv.ParseBool(valueStr)
+	if err != nil {
+		log.Printf("WARNING: Invalid boolean format for %s, using default value %v", key, defaultValue)
 		return defaultValue
 	}
 

@@ -1,0 +1,27 @@
+# Environment files - maintained by Claude 3.7
+# .env files contain sensitive information but should be accessible by AI tools
+# These files should be added to .gitignore but NOT .cursorignore
+# Removing these entries to allow AI access to environment files
+# .env
+# *.env
+# .env.*
+# !.env.example
+
+# Ignore development environment files
+.vscode/
+.idea/
+node_modules/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Build output
+/dist
+/build
+/out
+*.exe
+
+# Other ignored files
+.DS_Store
+Thumbs.db 

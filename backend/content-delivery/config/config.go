@@ -31,6 +31,13 @@ type Config struct {
 
 	// CMS Service URL for inter-service communication
 	CMSServiceURL string
+
+	// RabbitMQ settings
+	RabbitMQURL      string
+	RabbitMQExchange string
+
+	// OpenSearch logging settings
+	OpenSearchURL string
 }
 
 // LoadConfig loads configuration from environment variables
@@ -40,17 +47,20 @@ func LoadConfig() (*Config, error) {
 
 	// Load configuration
 	config := &Config{
-		Port:           getEnv("PORT", "8082"),
-		JWTSecret:      getEnv("JWT_SECRET", "your-secret-key"),
-		DatabaseURL:    getEnv("DATABASE_URL", "postgres://postgres:vampire8122003@localhost:5432/learnvibe_content"),
-		RedisURL:       getEnv("REDIS_URL", "localhost:6379"),
-		RedisPass:      getEnv("REDIS_PASSWORD", ""),
-		MinioEndpoint:  getEnv("MINIO_ENDPOINT", "localhost:9000"),
-		MinioAccessKey: getEnv("MINIO_ACCESS_KEY", "minioadmin"),
-		MinioSecretKey: getEnv("MINIO_SECRET_KEY", "minioadmin"),
-		MinioBucket:    getEnv("MINIO_BUCKET", "learnvibe-content"),
-		MinioUseSSL:    getEnvBool("MINIO_USE_SSL", false),
-		CMSServiceURL:  getEnv("CMS_SERVICE_URL", "http://localhost:8080"),
+		Port:             getEnv("PORT", "8082"),
+		JWTSecret:        getEnv("JWT_SECRET", "your-secret-key"),
+		DatabaseURL:      getEnv("DATABASE_URL", "postgres://postgres:vampire8122003@localhost:5432/learnvibe_content"),
+		RedisURL:         getEnv("REDIS_URL", "localhost:6379"),
+		RedisPass:        getEnv("REDIS_PASSWORD", ""),
+		MinioEndpoint:    getEnv("MINIO_ENDPOINT", "localhost:9000"),
+		MinioAccessKey:   getEnv("MINIO_ACCESS_KEY", "minioadmin"),
+		MinioSecretKey:   getEnv("MINIO_SECRET_KEY", "minioadmin"),
+		MinioBucket:      getEnv("MINIO_BUCKET", "learnvibe-content"),
+		MinioUseSSL:      getEnvBool("MINIO_USE_SSL", false),
+		CMSServiceURL:    getEnv("CMS_SERVICE_URL", "http://localhost:8080"),
+		RabbitMQURL:      getEnv("RABBITMQ_URL", "amqp://guest:guest@localhost:5672/"),
+		RabbitMQExchange: getEnv("RABBITMQ_EXCHANGE", "learnvibe"),
+		OpenSearchURL:    getEnv("OPENSEARCH_URL", "http://localhost:9200"),
 	}
 
 	// Validate required settings

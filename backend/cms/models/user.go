@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
 
@@ -22,6 +23,7 @@ type User struct {
 	Email     string    `gorm:"uniqueIndex" json:"email"`
 	Name      string    `json:"name"`
 	GoogleID  string    `gorm:"uniqueIndex" json:"google_id,omitempty"`
+	Password  string    `gorm:"size:255"` // Hashed password
 	Role      Role      `gorm:"type:varchar(20);default:'student'" json:"role"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
@@ -53,4 +55,20 @@ func (u *User) IsInstructor() bool {
 // IsStudent checks if the user is a student
 func (u *User) IsStudent() bool {
 	return u.Role == RoleStudent
+}
+
+// SetPassword hashes and sets the user's password
+func (u *User) SetPassword(password string) error {
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		return err
+	}
+	u.Password = string(hashedPassword)
+	return nil
+}
+
+// VerifyPassword checks if the provided password matches the stored hash
+func (u *User) VerifyPassword(password string) bool {
+	err := bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(password))
+	return err == nil
 }

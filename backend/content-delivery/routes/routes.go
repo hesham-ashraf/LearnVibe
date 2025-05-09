@@ -8,14 +8,9 @@ import (
 )
 
 // SetupRoutes configures all the routes for the application
-func SetupRoutes(router *gin.Engine, contentController *controllers.ContentController, cfg *config.Config) {
+func SetupRoutes(router *gin.Engine, contentController *controllers.ContentController, healthController *controllers.HealthController, cfg *config.Config) {
 	// Health check
-	router.GET("/health", func(c *gin.Context) {
-		c.JSON(200, gin.H{
-			"status":  "ok",
-			"service": "content-delivery",
-		})
-	})
+	router.GET("/health", healthController.CheckHealth)
 
 	// API routes (protected)
 	api := router.Group("/api")

@@ -1,0 +1,979 @@
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title>config: Go Coverage Report</title>
+		<style>
+			body {
+				background: black;
+				color: rgb(80, 80, 80);
+			}
+			body, pre, #legend span {
+				font-family: Menlo, monospace;
+				font-weight: bold;
+			}
+			#topbar {
+				background: black;
+				position: fixed;
+				top: 0; left: 0; right: 0;
+				height: 42px;
+				border-bottom: 1px solid rgb(80, 80, 80);
+			}
+			#content {
+				margin-top: 50px;
+			}
+			#nav, #legend {
+				float: left;
+				margin-left: 10px;
+			}
+			#legend {
+				margin-top: 12px;
+			}
+			#nav {
+				margin-top: 10px;
+			}
+			#legend span {
+				margin: 0 5px;
+			}
+			.cov0 { color: rgb(192, 0, 0) }
+.cov1 { color: rgb(128, 128, 128) }
+.cov2 { color: rgb(116, 140, 131) }
+.cov3 { color: rgb(104, 152, 134) }
+.cov4 { color: rgb(92, 164, 137) }
+.cov5 { color: rgb(80, 176, 140) }
+.cov6 { color: rgb(68, 188, 143) }
+.cov7 { color: rgb(56, 200, 146) }
+.cov8 { color: rgb(44, 212, 149) }
+.cov9 { color: rgb(32, 224, 152) }
+.cov10 { color: rgb(20, 236, 155) }
+
+		</style>
+	</head>
+	<body>
+		<div id="topbar">
+			<div id="nav">
+				<select id="files">
+				
+				<option value="file0">github.com/hesham-ashraf/LearnVibe/backend/gateway/config/config.go (0.0%)</option>
+				
+				<option value="file1">github.com/hesham-ashraf/LearnVibe/backend/gateway/health/health.go (0.0%)</option>
+				
+				<option value="file2">github.com/hesham-ashraf/LearnVibe/backend/gateway/main.go (0.0%)</option>
+				
+				<option value="file3">github.com/hesham-ashraf/LearnVibe/backend/gateway/middleware/auth.go (0.0%)</option>
+				
+				<option value="file4">github.com/hesham-ashraf/LearnVibe/backend/gateway/middleware/cors.go (0.0%)</option>
+				
+				<option value="file5">github.com/hesham-ashraf/LearnVibe/backend/gateway/middleware/ratelimit.go (0.0%)</option>
+				
+				<option value="file6">github.com/hesham-ashraf/LearnVibe/backend/gateway/proxy/proxy.go (0.0%)</option>
+				
+				<option value="file7">github.com/hesham-ashraf/LearnVibe/backend/gateway/routes/routes.go (0.0%)</option>
+				
+				<option value="file8">github.com/hesham-ashraf/LearnVibe/backend/gateway/tests/config/test_config.go (0.0%)</option>
+				
+				</select>
+			</div>
+			<div id="legend">
+				<span>not tracked</span>
+			
+				<span class="cov0">not covered</span>
+				<span class="cov8">covered</span>
+			
+			</div>
+		</div>
+		<div id="content">
+		
+		<pre class="file" id="file0" style="display: none">package config
+
+import (
+        "log"
+        "os"
+        "strconv"
+
+        "github.com/joho/godotenv"
+)
+
+// Config holds the application configuration
+type Config struct {
+        // Server settings
+        Port        string
+        EnableHTTPS bool
+        HTTPSPort   string
+
+        // JWT settings for validation
+        JWTSecret string
+
+        // Rate limiting
+        RateLimitRequests int
+        RateLimitDuration int // in seconds
+
+        // Circuit breaker settings
+        CircuitBreakerMaxRequests uint32
+        CircuitBreakerInterval    int // in seconds
+        CircuitBreakerTimeout     int // in seconds
+
+        // Service URLs
+        CMSServiceURL         string
+        ContentServiceURL     string
+        CMSHealthEndpoint     string
+        ContentHealthEndpoint string
+
+        // Request timeouts
+        RequestTimeout int // in seconds
+}
+
+// LoadConfig loads configuration from environment variables
+func LoadConfig() (*Config, error) <span class="cov0" title="0">{
+        // Load .env file if present
+        _ = godotenv.Load()
+
+        // Load configuration
+        config := &amp;Config{
+                Port:                      getEnv("PORT", "8000"),
+                EnableHTTPS:               getEnvAsBool("ENABLE_HTTPS", false),
+                HTTPSPort:                 getEnv("HTTPS_PORT", "8443"),
+                JWTSecret:                 getEnv("JWT_SECRET", "your-secret-key"),
+                RateLimitRequests:         getEnvAsInt("RATE_LIMIT_REQUESTS", 100),
+                RateLimitDuration:         getEnvAsInt("RATE_LIMIT_DURATION", 60),
+                CircuitBreakerMaxRequests: uint32(getEnvAsInt("CIRCUIT_BREAKER_MAX_REQUESTS", 5)),
+                CircuitBreakerInterval:    getEnvAsInt("CIRCUIT_BREAKER_INTERVAL", 30),
+                CircuitBreakerTimeout:     getEnvAsInt("CIRCUIT_BREAKER_TIMEOUT", 10),
+                CMSServiceURL:             getEnv("CMS_SERVICE_URL", "http://localhost:8080"),
+                ContentServiceURL:         getEnv("CONTENT_SERVICE_URL", "http://localhost:8082"),
+                CMSHealthEndpoint:         getEnv("CMS_HEALTH_ENDPOINT", "/health"),
+                ContentHealthEndpoint:     getEnv("CONTENT_HEALTH_ENDPOINT", "/health"),
+                RequestTimeout:            getEnvAsInt("REQUEST_TIMEOUT", 30),
+        }
+
+        // Validate required settings
+        if config.JWTSecret == "" </span><span class="cov0" title="0">{
+                log.Println("WARNING: JWT_SECRET is not set! Using default value for development only!")
+        }</span>
+
+        <span class="cov0" title="0">return config, nil</span>
+}
+
+// getEnv gets an environment variable or returns a default value
+func getEnv(key, defaultValue string) string <span class="cov0" title="0">{
+        value := os.Getenv(key)
+        if value == "" </span><span class="cov0" title="0">{
+                return defaultValue
+        }</span>
+        <span class="cov0" title="0">return value</span>
+}
+
+// getEnvAsInt gets an environment variable as int or returns a default value
+func getEnvAsInt(key string, defaultValue int) int <span class="cov0" title="0">{
+        valueStr := getEnv(key, "")
+        if valueStr == "" </span><span class="cov0" title="0">{
+                return defaultValue
+        }</span>
+
+        <span class="cov0" title="0">value, err := strconv.Atoi(valueStr)
+        if err != nil </span><span class="cov0" title="0">{
+                log.Printf("WARNING: Invalid integer format for %s, using default value %d", key, defaultValue)
+                return defaultValue
+        }</span>
+
+        <span class="cov0" title="0">return value</span>
+}
+
+// getEnvAsBool gets an environment variable as bool or returns a default value
+func getEnvAsBool(key string, defaultValue bool) bool <span class="cov0" title="0">{
+        valueStr := getEnv(key, "")
+        if valueStr == "" </span><span class="cov0" title="0">{
+                return defaultValue
+        }</span>
+
+        <span class="cov0" title="0">value, err := strconv.ParseBool(valueStr)
+        if err != nil </span><span class="cov0" title="0">{
+                log.Printf("WARNING: Invalid boolean format for %s, using default value %v", key, defaultValue)
+                return defaultValue
+        }</span>
+
+        <span class="cov0" title="0">return value</span>
+}
+</pre>
+		
+		<pre class="file" id="file1" style="display: none">package health
+
+import (
+        "context"
+        "fmt"
+        "net/http"
+        "sync"
+        "time"
+
+        "github.com/gin-gonic/gin"
+        "github.com/hesham-ashraf/LearnVibe/backend/gateway/config"
+)
+
+// ServiceStatus represents the status of a service
+type ServiceStatus struct {
+        Name   string `json:"name"`
+        Status string `json:"status"`
+        URL    string `json:"url"`
+}
+
+// GatewayStatus represents the status of the API gateway and its services
+type GatewayStatus struct {
+        Status   string          `json:"status"`
+        Services []ServiceStatus `json:"services"`
+        Time     time.Time       `json:"time"`
+}
+
+// HealthChecker performs health checks on microservices
+type HealthChecker struct {
+        cmsURL        string
+        contentURL    string
+        cmsHealth     string
+        contentHealth string
+        client        *http.Client
+}
+
+// NewHealthChecker creates a new health checker
+func NewHealthChecker(cfg *config.Config) *HealthChecker <span class="cov0" title="0">{
+        return &amp;HealthChecker{
+                cmsURL:        cfg.CMSServiceURL,
+                contentURL:    cfg.ContentServiceURL,
+                cmsHealth:     cfg.CMSHealthEndpoint,
+                contentHealth: cfg.ContentHealthEndpoint,
+                client: &amp;http.Client{
+                        Timeout: time.Duration(cfg.RequestTimeout) * time.Second,
+                },
+        }
+}</span>
+
+// checkServiceHealth checks the health of a service
+func (hc *HealthChecker) checkServiceHealth(ctx context.Context, baseURL, healthEndpoint, serviceName string) ServiceStatus <span class="cov0" title="0">{
+        url := fmt.Sprintf("%s%s", baseURL, healthEndpoint)
+        status := ServiceStatus{
+                Name: serviceName,
+                URL:  baseURL,
+        }
+
+        req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+        if err != nil </span><span class="cov0" title="0">{
+                status.Status = "error"
+                return status
+        }</span>
+
+        <span class="cov0" title="0">resp, err := hc.client.Do(req)
+        if err != nil </span><span class="cov0" title="0">{
+                status.Status = "down"
+                return status
+        }</span>
+        <span class="cov0" title="0">defer resp.Body.Close()
+
+        if resp.StatusCode &gt;= 200 &amp;&amp; resp.StatusCode &lt; 300 </span><span class="cov0" title="0">{
+                status.Status = "up"
+        }</span> else<span class="cov0" title="0"> {
+                status.Status = "down"
+        }</span>
+
+        <span class="cov0" title="0">return status</span>
+}
+
+// CheckAllServices checks the health of all services
+func (hc *HealthChecker) CheckAllServices(c *gin.Context) <span class="cov0" title="0">{
+        ctx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Second)
+        defer cancel()
+
+        // Check all services concurrently
+        var wg sync.WaitGroup
+        serviceStatuses := make([]ServiceStatus, 2)
+
+        wg.Add(2)
+
+        // Check CMS service
+        go func() </span><span class="cov0" title="0">{
+                defer wg.Done()
+                serviceStatuses[0] = hc.checkServiceHealth(ctx, hc.cmsURL, hc.cmsHealth, "CMS Service")
+        }</span>()
+
+        // Check Content service
+        <span class="cov0" title="0">go func() </span><span class="cov0" title="0">{
+                defer wg.Done()
+                serviceStatuses[1] = hc.checkServiceHealth(ctx, hc.contentURL, hc.contentHealth, "Content Service")
+        }</span>()
+
+        <span class="cov0" title="0">wg.Wait()
+
+        // Determine overall status
+        overallStatus := "up"
+        for _, status := range serviceStatuses </span><span class="cov0" title="0">{
+                if status.Status != "up" </span><span class="cov0" title="0">{
+                        overallStatus = "degraded"
+                        if status.Status == "down" </span><span class="cov0" title="0">{
+                                // If any critical service is down, mark as down
+                                if status.Name == "CMS Service" </span><span class="cov0" title="0">{
+                                        overallStatus = "down"
+                                        break</span>
+                                }
+                        }
+                }
+        }
+
+        // Return the health check results
+        <span class="cov0" title="0">c.JSON(http.StatusOK, GatewayStatus{
+                Status:   overallStatus,
+                Services: serviceStatuses,
+                Time:     time.Now(),
+        })</span>
+}
+</pre>
+		
+		<pre class="file" id="file2" style="display: none">package main
+
+import (
+        "log"
+        "os"
+        "path/filepath"
+
+        "github.com/gin-gonic/gin"
+        "github.com/hesham-ashraf/LearnVibe/backend/gateway/config"
+        "github.com/hesham-ashraf/LearnVibe/backend/gateway/health"
+        "github.com/hesham-ashraf/LearnVibe/backend/gateway/proxy"
+        "github.com/hesham-ashraf/LearnVibe/backend/gateway/routes"
+)
+
+func main() <span class="cov0" title="0">{
+        // Load configuration
+        cfg, err := config.LoadConfig()
+        if err != nil </span><span class="cov0" title="0">{
+                log.Fatalf("Failed to load configuration: %v", err)
+        }</span>
+
+        // Initialize service proxy
+        <span class="cov0" title="0">serviceProxy, err := proxy.NewServiceProxy(cfg)
+        if err != nil </span><span class="cov0" title="0">{
+                log.Fatalf("Failed to initialize service proxy: %v", err)
+        }</span>
+
+        // Initialize health checker
+        <span class="cov0" title="0">healthChecker := health.NewHealthChecker(cfg)
+
+        // Setup Gin
+        if gin.Mode() == gin.ReleaseMode </span><span class="cov0" title="0">{
+                gin.SetMode(gin.ReleaseMode)
+        }</span>
+        <span class="cov0" title="0">router := gin.Default()
+
+        // Setup routes
+        routes.SetupRoutes(router, serviceProxy, healthChecker, cfg)
+
+        // Create certs directory if it doesn't exist
+        if cfg.EnableHTTPS </span><span class="cov0" title="0">{
+                certsDir := "certs"
+                if _, err := os.Stat(certsDir); os.IsNotExist(err) </span><span class="cov0" title="0">{
+                        err = os.MkdirAll(certsDir, 0755)
+                        if err != nil </span><span class="cov0" title="0">{
+                                log.Printf("Warning: Failed to create certs directory: %v", err)
+                        }</span>
+                }
+        }
+
+        // Start the server
+        <span class="cov0" title="0">log.Printf("API Gateway running on port %s", cfg.Port)
+        log.Printf("CMS Service URL: %s", cfg.CMSServiceURL)
+        log.Printf("Content Service URL: %s", cfg.ContentServiceURL)
+
+        // Start server with or without HTTPS
+        if cfg.EnableHTTPS </span><span class="cov0" title="0">{
+                certFile := filepath.Join("certs", "server.crt")
+                keyFile := filepath.Join("certs", "server.key")
+
+                // Check if certificate files exist
+                if _, err := os.Stat(certFile); os.IsNotExist(err) </span><span class="cov0" title="0">{
+                        log.Printf("Warning: SSL certificate file not found at %s", certFile)
+                        log.Println("Falling back to HTTP")
+                        if err := router.Run(":" + cfg.Port); err != nil </span><span class="cov0" title="0">{
+                                log.Fatalf("Failed to start server: %v", err)
+                        }</span>
+                } else<span class="cov0" title="0"> if _, err := os.Stat(keyFile); os.IsNotExist(err) </span><span class="cov0" title="0">{
+                        log.Printf("Warning: SSL key file not found at %s", keyFile)
+                        log.Println("Falling back to HTTP")
+                        if err := router.Run(":" + cfg.Port); err != nil </span><span class="cov0" title="0">{
+                                log.Fatalf("Failed to start server: %v", err)
+                        }</span>
+                } else<span class="cov0" title="0"> {
+                        log.Printf("Starting server with HTTPS on port %s", cfg.HTTPSPort)
+                        if err := router.RunTLS(":"+cfg.HTTPSPort, certFile, keyFile); err != nil </span><span class="cov0" title="0">{
+                                log.Fatalf("Failed to start HTTPS server: %v", err)
+                        }</span>
+                }
+        } else<span class="cov0" title="0"> {
+                if err := router.Run(":" + cfg.Port); err != nil </span><span class="cov0" title="0">{
+                        log.Fatalf("Failed to start server: %v", err)
+                }</span>
+        }
+}
+</pre>
+		
+		<pre class="file" id="file3" style="display: none">package middleware
+
+import (
+        "errors"
+        "net/http"
+        "strings"
+        "time"
+
+        "github.com/gin-gonic/gin"
+        "github.com/golang-jwt/jwt/v5"
+)
+
+// Claims defines the structure for JWT token claims
+type Claims struct {
+        UserID string `json:"user_id"`
+        Role   string `json:"role"`
+        jwt.RegisteredClaims
+}
+
+// TokenValidationMiddleware validates JWT tokens and sets claims in context
+func TokenValidationMiddleware(jwtSecret string) gin.HandlerFunc <span class="cov0" title="0">{
+        return func(c *gin.Context) </span><span class="cov0" title="0">{
+                // Skip validation for auth endpoints
+                if strings.HasPrefix(c.Request.URL.Path, "/auth") ||
+                        strings.HasPrefix(c.Request.URL.Path, "/health") </span><span class="cov0" title="0">{
+                        c.Next()
+                        return
+                }</span>
+
+                // Get the Authorization header
+                <span class="cov0" title="0">authHeader := c.GetHeader("Authorization")
+                if authHeader == "" </span><span class="cov0" title="0">{
+                        c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Authorization header is required"})
+                        return
+                }</span>
+
+                // Check the Authorization header format
+                <span class="cov0" title="0">headerParts := strings.Split(authHeader, " ")
+                if len(headerParts) != 2 || headerParts[0] != "Bearer" </span><span class="cov0" title="0">{
+                        c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Authorization header format must be Bearer {token}"})
+                        return
+                }</span>
+
+                // Extract the token
+                <span class="cov0" title="0">tokenString := headerParts[1]
+
+                // Parse and validate the token
+                claims := &amp;Claims{}
+                token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) </span><span class="cov0" title="0">{
+                        // Validate the signing method
+                        if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok </span><span class="cov0" title="0">{
+                                return nil, errors.New("unexpected signing method")
+                        }</span>
+                        <span class="cov0" title="0">return []byte(jwtSecret), nil</span>
+                })
+
+                // Handle token parsing errors
+                <span class="cov0" title="0">if err != nil </span><span class="cov0" title="0">{
+                        c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Invalid or expired token"})
+                        return
+                }</span>
+
+                // Check if token is valid
+                <span class="cov0" title="0">if !token.Valid </span><span class="cov0" title="0">{
+                        c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})
+                        return
+                }</span>
+
+                // Check token expiration
+                <span class="cov0" title="0">if claims.ExpiresAt.Time.Before(time.Now()) </span><span class="cov0" title="0">{
+                        c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Token expired"})
+                        return
+                }</span>
+
+                // Set claims in context for future handlers
+                <span class="cov0" title="0">c.Set("userID", claims.UserID)
+                c.Set("userRole", claims.Role)
+
+                // Forward the authorization header to downstream services
+                c.Request.Header.Set("X-User-ID", claims.UserID)
+                c.Request.Header.Set("X-User-Role", claims.Role)
+
+                c.Next()</span>
+        }
+}
+</pre>
+		
+		<pre class="file" id="file4" style="display: none">package middleware
+
+import "github.com/gin-gonic/gin"
+
+// CORSMiddleware handles Cross-Origin Resource Sharing
+func CORSMiddleware() gin.HandlerFunc <span class="cov0" title="0">{
+        return func(c *gin.Context) </span><span class="cov0" title="0">{
+                c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
+                c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
+                c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With")
+                c.Writer.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS, GET, PUT, DELETE")
+
+                if c.Request.Method == "OPTIONS" </span><span class="cov0" title="0">{
+                        c.AbortWithStatus(204)
+                        return
+                }</span>
+
+                <span class="cov0" title="0">c.Next()</span>
+        }
+}
+</pre>
+		
+		<pre class="file" id="file5" style="display: none">package middleware
+
+import (
+        "net/http"
+        "sync"
+
+        "github.com/gin-gonic/gin"
+        "golang.org/x/time/rate"
+)
+
+// RateLimiter stores rate limiters for different client IPs
+type RateLimiter struct {
+        visitors map[string]*rate.Limiter
+        mu       sync.RWMutex
+        rate     rate.Limit
+        burst    int
+}
+
+// NewRateLimiter creates a new rate limiter
+func NewRateLimiter(requestsPerSecond int, burst int) *RateLimiter <span class="cov0" title="0">{
+        return &amp;RateLimiter{
+                visitors: make(map[string]*rate.Limiter),
+                rate:     rate.Limit(requestsPerSecond),
+                burst:    burst,
+        }
+}</span>
+
+// GetLimiter gets or creates a rate limiter for a client
+func (rl *RateLimiter) GetLimiter(ip string) *rate.Limiter <span class="cov0" title="0">{
+        rl.mu.RLock()
+        limiter, exists := rl.visitors[ip]
+        rl.mu.RUnlock()
+
+        if !exists </span><span class="cov0" title="0">{
+                rl.mu.Lock()
+                limiter = rate.NewLimiter(rl.rate, rl.burst)
+                rl.visitors[ip] = limiter
+                rl.mu.Unlock()
+        }</span>
+
+        <span class="cov0" title="0">return limiter</span>
+}
+
+// RateLimitMiddleware applies rate limiting based on client IP
+func RateLimitMiddleware(requestsPerSecond, burst int) gin.HandlerFunc <span class="cov0" title="0">{
+        rateLimiter := NewRateLimiter(requestsPerSecond, burst)
+
+        return func(c *gin.Context) </span><span class="cov0" title="0">{
+                // Skip rate limiting for health check endpoint
+                if c.Request.URL.Path == "/health" </span><span class="cov0" title="0">{
+                        c.Next()
+                        return
+                }</span>
+
+                // Get client IP
+                <span class="cov0" title="0">ip := c.ClientIP()
+                limiter := rateLimiter.GetLimiter(ip)
+
+                // Check if rate limit is exceeded
+                if !limiter.Allow() </span><span class="cov0" title="0">{
+                        c.AbortWithStatusJSON(http.StatusTooManyRequests, gin.H{
+                                "error": "Rate limit exceeded",
+                        })
+                        return
+                }</span>
+
+                <span class="cov0" title="0">c.Next()</span>
+        }
+}
+</pre>
+		
+		<pre class="file" id="file6" style="display: none">package proxy
+
+import (
+        "context"
+        "fmt"
+        "net/http"
+        "net/http/httputil"
+        "net/url"
+        "time"
+
+        "github.com/cenkalti/backoff/v4"
+        "github.com/gin-gonic/gin"
+        "github.com/hesham-ashraf/LearnVibe/backend/gateway/config"
+        "github.com/sony/gobreaker"
+)
+
+// ServiceProxy manages proxying requests to microservices
+type ServiceProxy struct {
+        CMSUrl         *url.URL
+        ContentUrl     *url.URL
+        config         *config.Config
+        cmsBreaker     *gobreaker.CircuitBreaker
+        contentBreaker *gobreaker.CircuitBreaker
+}
+
+// NewServiceProxy creates a new service proxy
+func NewServiceProxy(cfg *config.Config) (*ServiceProxy, error) <span class="cov0" title="0">{
+        cmsUrl, err := url.Parse(cfg.CMSServiceURL)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("invalid CMS service URL: %v", err)
+        }</span>
+
+        <span class="cov0" title="0">contentUrl, err := url.Parse(cfg.ContentServiceURL)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("invalid Content service URL: %v", err)
+        }</span>
+
+        // Configure circuit breakers for each service
+        <span class="cov0" title="0">cmsSetting := gobreaker.Settings{
+                Name:        "CMSServiceBreaker",
+                MaxRequests: cfg.CircuitBreakerMaxRequests,
+                Interval:    time.Duration(cfg.CircuitBreakerInterval) * time.Second,
+                Timeout:     time.Duration(cfg.CircuitBreakerTimeout) * time.Second,
+                ReadyToTrip: func(counts gobreaker.Counts) bool </span><span class="cov0" title="0">{
+                        failureRatio := float64(counts.TotalFailures) / float64(counts.Requests)
+                        return counts.Requests &gt;= 5 &amp;&amp; failureRatio &gt;= 0.5
+                }</span>,
+                OnStateChange: func(name string, from gobreaker.State, to gobreaker.State) <span class="cov0" title="0">{
+                        fmt.Printf("Circuit breaker %s state changed from %s to %s\n", name, from, to)
+                }</span>,
+        }
+
+        <span class="cov0" title="0">contentSetting := gobreaker.Settings{
+                Name:        "ContentServiceBreaker",
+                MaxRequests: cfg.CircuitBreakerMaxRequests,
+                Interval:    time.Duration(cfg.CircuitBreakerInterval) * time.Second,
+                Timeout:     time.Duration(cfg.CircuitBreakerTimeout) * time.Second,
+                ReadyToTrip: func(counts gobreaker.Counts) bool </span><span class="cov0" title="0">{
+                        failureRatio := float64(counts.TotalFailures) / float64(counts.Requests)
+                        return counts.Requests &gt;= 5 &amp;&amp; failureRatio &gt;= 0.5
+                }</span>,
+                OnStateChange: func(name string, from gobreaker.State, to gobreaker.State) <span class="cov0" title="0">{
+                        fmt.Printf("Circuit breaker %s state changed from %s to %s\n", name, from, to)
+                }</span>,
+        }
+
+        <span class="cov0" title="0">return &amp;ServiceProxy{
+                CMSUrl:         cmsUrl,
+                ContentUrl:     contentUrl,
+                config:         cfg,
+                cmsBreaker:     gobreaker.NewCircuitBreaker(cmsSetting),
+                contentBreaker: gobreaker.NewCircuitBreaker(contentSetting),
+        }, nil</span>
+}
+
+// ProxyCMSRequest proxies requests to the CMS service
+func (sp *ServiceProxy) ProxyCMSRequest() gin.HandlerFunc <span class="cov0" title="0">{
+        return func(c *gin.Context) </span><span class="cov0" title="0">{
+                // Execute request through circuit breaker
+                result, err := sp.cmsBreaker.Execute(func() (interface{}, error) </span><span class="cov0" title="0">{
+                        // Create a reverse proxy
+                        proxy := httputil.NewSingleHostReverseProxy(sp.CMSUrl)
+
+                        // Set default request director
+                        originalDirector := proxy.Director
+                        proxy.Director = func(req *http.Request) </span><span class="cov0" title="0">{
+                                originalDirector(req)
+                                sp.modifyRequest(req, sp.CMSUrl)
+                        }</span>
+
+                        // Handle errors
+                        <span class="cov0" title="0">proxy.ErrorHandler = func(rw http.ResponseWriter, req *http.Request, err error) </span><span class="cov0" title="0">{
+                                fmt.Printf("CMS proxy error: %v\n", err)
+                                rw.WriteHeader(http.StatusBadGateway)
+                                rw.Write([]byte("CMS service unavailable"))
+                        }</span>
+
+                        // Serve the request with retry logic
+                        <span class="cov0" title="0">var proxyErr error
+                        operation := func() error </span><span class="cov0" title="0">{
+                                ctx, cancel := context.WithTimeout(c.Request.Context(), time.Duration(sp.config.RequestTimeout)*time.Second)
+                                defer cancel()
+
+                                req := c.Request.WithContext(ctx)
+                                proxy.ServeHTTP(c.Writer, req)
+
+                                // If we've written a bad gateway status, return an error to trigger retry
+                                if c.Writer.Status() == http.StatusBadGateway </span><span class="cov0" title="0">{
+                                        return fmt.Errorf("received bad gateway status")
+                                }</span>
+
+                                <span class="cov0" title="0">return nil</span>
+                        }
+
+                        <span class="cov0" title="0">backoffConfig := backoff.NewExponentialBackOff()
+                        backoffConfig.MaxElapsedTime = 5 * time.Second
+
+                        if err := backoff.Retry(operation, backoffConfig); err != nil </span><span class="cov0" title="0">{
+                                proxyErr = err
+                        }</span>
+
+                        <span class="cov0" title="0">if proxyErr != nil </span><span class="cov0" title="0">{
+                                return nil, proxyErr
+                        }</span>
+
+                        <span class="cov0" title="0">return nil, nil</span>
+                })
+
+                <span class="cov0" title="0">if err != nil </span><span class="cov0" title="0">{
+                        c.AbortWithStatusJSON(http.StatusServiceUnavailable, gin.H{
+                                "error": "CMS service is currently unavailable",
+                        })
+                        return
+                }</span>
+
+                <span class="cov0" title="0">_ = result // result is not used as response is written by the proxy
+                c.Abort()</span>  // Prevent further handlers from executing
+        }
+}
+
+// ProxyContentRequest proxies requests to the Content service
+func (sp *ServiceProxy) ProxyContentRequest() gin.HandlerFunc <span class="cov0" title="0">{
+        return func(c *gin.Context) </span><span class="cov0" title="0">{
+                // Execute request through circuit breaker
+                result, err := sp.contentBreaker.Execute(func() (interface{}, error) </span><span class="cov0" title="0">{
+                        // Create a reverse proxy
+                        proxy := httputil.NewSingleHostReverseProxy(sp.ContentUrl)
+
+                        // Set default request director
+                        originalDirector := proxy.Director
+                        proxy.Director = func(req *http.Request) </span><span class="cov0" title="0">{
+                                originalDirector(req)
+                                sp.modifyRequest(req, sp.ContentUrl)
+                        }</span>
+
+                        // Handle errors
+                        <span class="cov0" title="0">proxy.ErrorHandler = func(rw http.ResponseWriter, req *http.Request, err error) </span><span class="cov0" title="0">{
+                                fmt.Printf("Content proxy error: %v\n", err)
+                                rw.WriteHeader(http.StatusBadGateway)
+                                rw.Write([]byte("Content service unavailable"))
+                        }</span>
+
+                        // Serve the request with retry logic
+                        <span class="cov0" title="0">var proxyErr error
+                        operation := func() error </span><span class="cov0" title="0">{
+                                ctx, cancel := context.WithTimeout(c.Request.Context(), time.Duration(sp.config.RequestTimeout)*time.Second)
+                                defer cancel()
+
+                                req := c.Request.WithContext(ctx)
+                                proxy.ServeHTTP(c.Writer, req)
+
+                                // If we've written a bad gateway status, return an error to trigger retry
+                                if c.Writer.Status() == http.StatusBadGateway </span><span class="cov0" title="0">{
+                                        return fmt.Errorf("received bad gateway status")
+                                }</span>
+
+                                <span class="cov0" title="0">return nil</span>
+                        }
+
+                        <span class="cov0" title="0">backoffConfig := backoff.NewExponentialBackOff()
+                        backoffConfig.MaxElapsedTime = 5 * time.Second
+
+                        if err := backoff.Retry(operation, backoffConfig); err != nil </span><span class="cov0" title="0">{
+                                proxyErr = err
+                        }</span>
+
+                        <span class="cov0" title="0">if proxyErr != nil </span><span class="cov0" title="0">{
+                                return nil, proxyErr
+                        }</span>
+
+                        <span class="cov0" title="0">return nil, nil</span>
+                })
+
+                <span class="cov0" title="0">if err != nil </span><span class="cov0" title="0">{
+                        c.AbortWithStatusJSON(http.StatusServiceUnavailable, gin.H{
+                                "error": "Content service is currently unavailable",
+                        })
+                        return
+                }</span>
+
+                <span class="cov0" title="0">_ = result // result is not used as response is written by the proxy
+                c.Abort()</span>  // Prevent further handlers from executing
+        }
+}
+
+// modifyRequest modifies the incoming request for the target service
+func (sp *ServiceProxy) modifyRequest(req *http.Request, target *url.URL) <span class="cov0" title="0">{
+        targetQuery := target.RawQuery
+        req.URL.Scheme = target.Scheme
+        req.URL.Host = target.Host
+        req.URL.Path, req.URL.RawPath = joinURLPath(target, req.URL)
+
+        // Set the appropriate Host header
+        req.Host = target.Host
+
+        if targetQuery == "" || req.URL.RawQuery == "" </span><span class="cov0" title="0">{
+                req.URL.RawQuery = targetQuery + req.URL.RawQuery
+        }</span> else<span class="cov0" title="0"> {
+                req.URL.RawQuery = targetQuery + "&amp;" + req.URL.RawQuery
+        }</span>
+}
+
+// joinURLPath joins base and reference URL paths
+func joinURLPath(base, ref *url.URL) (string, string) <span class="cov0" title="0">{
+        if ref.Path == "" </span><span class="cov0" title="0">{
+                return base.Path, base.RawPath
+        }</span>
+
+        <span class="cov0" title="0">path := base.Path
+        if path == "" || path == "/" </span><span class="cov0" title="0">{
+                return ref.Path, ref.RawPath
+        }</span>
+
+        // If base path doesn't end with / and ref path doesn't start with /
+        // Add / between them
+        <span class="cov0" title="0">if path[len(path)-1] != '/' &amp;&amp; ref.Path[0] != '/' </span><span class="cov0" title="0">{
+                return path + "/" + ref.Path, ""
+        }</span>
+
+        // If base path ends with / and ref path starts with /
+        // Remove one of the slashes
+        <span class="cov0" title="0">if path[len(path)-1] == '/' &amp;&amp; ref.Path[0] == '/' </span><span class="cov0" title="0">{
+                return path + ref.Path[1:], ""
+        }</span>
+
+        // Otherwise just concatenate them
+        <span class="cov0" title="0">return path + ref.Path, ""</span>
+}
+</pre>
+		
+		<pre class="file" id="file7" style="display: none">package routes
+
+import (
+        "strings"
+
+        "github.com/gin-gonic/gin"
+        "github.com/hesham-ashraf/LearnVibe/backend/gateway/config"
+        "github.com/hesham-ashraf/LearnVibe/backend/gateway/health"
+        "github.com/hesham-ashraf/LearnVibe/backend/gateway/middleware"
+        "github.com/hesham-ashraf/LearnVibe/backend/gateway/proxy"
+)
+
+// SetupRoutes configures all the routes for the API Gateway
+func SetupRoutes(router *gin.Engine, serviceProxy *proxy.ServiceProxy, healthChecker *health.HealthChecker, cfg *config.Config) <span class="cov0" title="0">{
+        // Middleware
+        router.Use(middleware.CORSMiddleware())
+        router.Use(middleware.RateLimitMiddleware(cfg.RateLimitRequests, cfg.RateLimitDuration))
+        router.Use(middleware.TokenValidationMiddleware(cfg.JWTSecret))
+
+        // Health check endpoint
+        router.GET("/health", healthChecker.CheckAllServices)
+
+        // Auth routes - proxy to CMS service
+        router.Group("/auth/*path").Use(serviceProxy.ProxyCMSRequest())
+
+        // CMS API routes
+        cmsRoutes := []string{
+                "/api/courses",
+                "/api/enrollments",
+                "/api/admin",
+        }
+
+        for _, route := range cmsRoutes </span><span class="cov0" title="0">{
+                router.Group(route + "/*path").Use(serviceProxy.ProxyCMSRequest())
+        }</span>
+
+        // Content API routes
+        <span class="cov0" title="0">contentRoutes := []string{
+                "/api/content",
+                "/public/content",
+        }
+
+        for _, route := range contentRoutes </span><span class="cov0" title="0">{
+                router.Group(route + "/*path").Use(serviceProxy.ProxyContentRequest())
+        }</span>
+
+        // Fallback route - determine service based on path
+        <span class="cov0" title="0">router.NoRoute(func(c *gin.Context) </span><span class="cov0" title="0">{
+                path := c.Request.URL.Path
+
+                // Decide where to proxy based on the path
+                if strings.HasPrefix(path, "/api/content") || strings.HasPrefix(path, "/public/content") </span><span class="cov0" title="0">{
+                        serviceProxy.ProxyContentRequest()(c)
+                }</span> else<span class="cov0" title="0"> {
+                        // Default to CMS service
+                        serviceProxy.ProxyCMSRequest()(c)
+                }</span>
+        })
+}
+</pre>
+		
+		<pre class="file" id="file8" style="display: none">package config
+
+import (
+        "os"
+
+        "github.com/hesham-ashraf/LearnVibe/backend/gateway/config"
+)
+
+// TestConfig defines configuration for testing
+type TestConfig struct {
+        *config.Config
+}
+
+// LoadTestConfig loads a configuration for testing
+func LoadTestConfig() (*TestConfig, error) <span class="cov0" title="0">{
+        // Set testing environment variables
+        os.Setenv("PORT", "8099") // Use different port for tests
+        os.Setenv("JWT_SECRET", "test-secret-key")
+        os.Setenv("CMS_SERVICE_URL", "http://localhost:8098") // Mock service URLs
+        os.Setenv("CONTENT_SERVICE_URL", "http://localhost:8097")
+        os.Setenv("ENABLE_HTTPS", "false") // Disable HTTPS for testing
+
+        // Load configuration using the regular config loader
+        cfg, err := config.LoadConfig()
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+
+        <span class="cov0" title="0">return &amp;TestConfig{
+                Config: cfg,
+        }, nil</span>
+}
+
+// ResetConfig restores environment variables to their original state
+func ResetConfig() <span class="cov0" title="0">{
+        // Unset all environment variables used in tests
+        os.Unsetenv("PORT")
+        os.Unsetenv("JWT_SECRET")
+        os.Unsetenv("CMS_SERVICE_URL")
+        os.Unsetenv("CONTENT_SERVICE_URL")
+        os.Unsetenv("ENABLE_HTTPS")
+}</span>
+</pre>
+		
+		</div>
+	</body>
+	<script>
+	(function() {
+		var files = document.getElementById('files');
+		var visible;
+		files.addEventListener('change', onChange, false);
+		function select(part) {
+			if (visible)
+				visible.style.display = 'none';
+			visible = document.getElementById(part);
+			if (!visible)
+				return;
+			files.value = part;
+			visible.style.display = 'block';
+			location.hash = part;
+		}
+		function onChange() {
+			select(files.value);
+			window.scrollTo(0, 0);
+		}
+		if (location.hash != "") {
+			select(location.hash.substr(1));
+		}
+		if (!visible) {
+			select("file0");
+		}
+	})();
+	</script>
+</html>
